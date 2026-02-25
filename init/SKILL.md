@@ -26,6 +26,7 @@ Ask the user for the following fields (all at once):
 * **language** — the programming language (e.g., TypeScript, Python)
 * **devEnv** — the development environment (e.g., Bun, Node.js, Deno)
 * **runtimeEnv** — the runtime environment (e.g., Bun, Node.js, Browser)
+* **entryDir** — the directory where the entry file is located (e.g., `src/entry`)
 * **flowDirs** — directories for flow files (e.g., `{ "src/flows": "default flow directory" }`)
 * **algorithmDirs** — directories for algorithm files (e.g., `{ "src/algorithms": "default algorithm directory" }`)
 * **stateDirs** — directories for state files (e.g., `{ "src/states": "default state directory" }`)
@@ -48,6 +49,7 @@ echo '{
   "devEnv": "<devEnv>",
   "runtimeEnv": "<runtimeEnv>",
   "projectConfig": "<projectConfig>",
+  "entryDir": "<entryDir>",
   "mainFileName": "<mainFileName>",
   "testFileName": "<testFileName>",
   "testCommand": "<testCommand>",

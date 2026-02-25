@@ -59,7 +59,7 @@ This state is a memory state, which means...
 ```
 
 ```ts
-import { Subscription } from 'graphicode-utils';
+import { Subscription, Status } from 'graphicode-utils';
 
 import TypeX from '../../types/TypeX';
 import TypeA from '../../types/TypeA';
@@ -72,31 +72,50 @@ import TypeG from '../../types/TypeG';
 import TypeH from '../../types/TypeH';
 import TypeI from '../../types/TypeI';
 
-class XXX extends Subscription {
+class XXX extends Subscription implements Status {
   private someState: xxx;
+
+  public enabled = false; // disabled initially
+  public enable() {
+    // write init code here, do not write in constructor
+    this.enabled = true;
+  }
+  public disable() {
+    // write unmount code here
+    this.enabled = false;
+  }
+
   public readData1(params: { x: TypeX }): { a: TypeA } {
     return { a };
   }
   public readData2(): { b: TypeB; c: TypeC } {
     return { b, c };
   }
+
   public writeData1(data: { d: TypeD }) {
     // xxx
   }
   public writeData2(data: { e: TypeE; f: TypeF; g: TypeG }) {
     // xxx
   }
-  public onEvent1(callback: (data: { h: TypeH }) => void) {
-    this._subscribe('event1', callback);
+
+  // "id" here will be flow id padding algorithm id
+  public onEvent1(id: string, callback: (data: { h: TypeH }) => void) {
+    this._subscribe(id, 'onEvent1', callback);
   }
-  public onEvent2(callback: (data: { i: TypeI }) => void) {
-    this._subscribe('event2', callback);
+  public onEvent2(id: string, callback: (data: { i: TypeI }) => void) {
+    this._subscribe(id, 'onEvent2', callback);
   }
+  
   private someMethod() {
     this.someState.xxx = xxx;
-    this._publish('event1', { h });
+    this._publish('onEvent1', { h });
   }
 }
+
+const xxx = new XXX();
+
+export default xxx;
 ```
 
 # Bun Runtime Environment

@@ -13,8 +13,8 @@ If the program processes from standard input to standard output, then maintainin
 # major
 doSomethingA -> doSomethingB -> doSomethingC
 # minor
-$stdState.stdinEvent -> doSomethingA
-doSomethingC -> @stdState.writeStdout
+$stdState.stdinEvent -> doSomethingA.input
+doSomethingC.result -> @stdState.writeStdout
 ```
 
 Here, doSomethingA will ultimately correspond to a pure function that only depends on the language engine, while all side effects related to the environment are handled by stdState.
@@ -29,9 +29,9 @@ Look at this example: after receiving the getUserInfoEvent event, it will execut
 # major
 transform -> combine -> generate
 # minor
-$api.getUserInfoEvent -> transform
-&sqlite.userTable -> combine
-generate -> @api.response
+$api.getUserInfoEvent -> transform.event
+&sqlite.userTable -> combine.userData
+generate.result -> @api.response
 ```
 
 ## case 3
@@ -46,8 +46,8 @@ Flow 1 — user submits keyword, build and send the request:
 # major
 buildRequest
 # minor
-$searchPage.onSearch -> buildRequest
-buildRequest -> @searchApi.fetch
+$searchPage.onSearch -> buildRequest.keyword
+buildRequest.request -> @searchApi.fetch
 ```
 
 Flow 2 — API responds, parse and render the results:
@@ -56,8 +56,8 @@ Flow 2 — API responds, parse and render the results:
 # major
 parseResponse
 # minor
-$searchApi.onResponse -> parseResponse
-parseResponse -> @searchPage.renderResults
+$searchApi.onResponse -> parseResponse.response
+parseResponse.results -> @searchPage.renderResults
 ```
 
 All side effects (DOM rendering, network requests) are encapsulated in state nodes, while algorithm nodes are pure data transformations.

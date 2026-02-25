@@ -19,11 +19,11 @@ The user will provide one or more algorithm IDs along with their directories. Yo
 Specifically, you need to write a function with the following parameter and return value specifications:
 
 1. The function accepts an object as a parameter, whose fields correspond one-to-one with the parameters listed in the input section of the readme file
-2. Each line in the readme's input section specifies the type of the corresponding parameter
+2. Each line in the readme's input section follows the format `paramName: TypeID`, specifying both the field name and its type
 3. The function returns an object, whose fields correspond one-to-one with the return values listed in the output section of the README file
-4. Each line in the readme's output section specifies the type of the corresponding return value
+4. Each line in the readme's output section follows the format `paramName: TypeID`, specifying both the field name and its type
 
-When writing code, you should determine the field names, and import the relevant type declarations from type directory.
+When writing code, use the field names specified in the README, and import the relevant type declarations from type directory.
 
 The readme's description describes the function logic. You need to implement the code logic according to this description, transforming the input parameters into output return values.
 
@@ -32,21 +32,21 @@ For example, the following readme corresponds to this code:
 ```md
 # input
 ## subscribes
-dir1/TypeA
-dir1/TypeB
+a: dir1/TypeA
+b: dir1/TypeB
 ## pulls
-dir2/TypeC
+c: dir2/TypeC
 ## passes
-dir2/TypeD
+d: dir2/TypeD
 
 # output
 ## pushes
-dir2/TypeE
-dir2/TypeF
+e: dir2/TypeE
+f: dir2/TypeF
 ## passes
 
 # description
-combine dir1/TypeA and dir1/TypeB to dir2/TypeC.
+combine a and b to e and f.
 ```
 
 ```ts

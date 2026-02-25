@@ -1,4 +1,5 @@
-import Store from "./Store/index";
 import Subscription from "./Subscription";
+import Status from "./Status";
+import Flow from "./Flow";
 
-export default { store: new Store(), Subscription };
+export { Subscription, Status, Flow };

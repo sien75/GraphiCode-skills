@@ -27,37 +27,37 @@ Only after the algorithm node finishes running completely, will the actual outpu
 
 This is an example of an algorithm node file, meaning:
 
-1. this algorithm subscribes to two types of data: dir1/TypeA and dir1/TypeB
-2. pulls dir2/TypeC data from a specific state
-3. receives dir2/TypeD data passed from the previous node
+1. this algorithm subscribes to two parameters: a (dir1/TypeA) and b (dir1/TypeB)
+2. pulls c (dir2/TypeC) from a specific state
+3. receives d (dir2/TypeD) passed from the previous node
 4. executes the description under the description heading
-5. pushes dir2/TypeE and dir2/TypeF data to a specific state
-6. passes dir2/TypeG data to next node
+5. pushes e (dir2/TypeE) and f (dir2/TypeF) to a specific state
+6. passes g (dir2/TypeG) to next node
 
 > Here we use the verb+s form as a noun. While not grammatically standard, the meaning is clear.
 
 ```md
 # input
 ## subscribes
-dir1/TypeA
-dir1/TypeB
+a: dir1/TypeA
+b: dir1/TypeB
 ## pulls
-dir2/TypeC
+c: dir2/TypeC
 ## passes
-dir2/TypeD
+d: dir2/TypeD
 
 # output
 ## pushes
-dir2/TypeE
-dir2/TypeF
+e: dir2/TypeE
+f: dir2/TypeF
 ## passes
-dir2/TypeG
+g: dir2/TypeG
 
 # description
-Transform dir1/TypeA and dir1/TypeB to dir2/TypeC.
+Transform a and b to e and f.
 ```
 
-Here `dir1/TypeA` is a type ID with its directory prefix. The directory corresponds to one of the `typeDirs` in `graphig.json`, and the type details are defined there, which you need to look up accordingly.
+Each parameter line follows the format `paramName: dir1/TypeA`, where `paramName` is the parameter name used in code, and `dir1/TypeA` is a type ID with its directory prefix. The directory corresponds to one of the `typeDirs` in `graphig.json`, and the type details are defined there, which you need to look up accordingly.
 
 ## important notes
 
