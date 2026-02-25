@@ -78,10 +78,10 @@ mkdir -p <typeDir> && echo '{}' > <typeDir>/type.graphig.json
 
 ## 4. Copy utility files
 
-Only for fresh initialization (not modification). Copy the language-specific utility files from this skill's assets directory to the project's `graphicode-utils/` directory:
+Copy the language-specific utility files from this skill's assets directory to the project's `graphicode-utils/` directory:
 
 ```sh
-mkdir -p ./utils
+mkdir -p ./graphicode-utils
 cp <this-skill-dir>/assets/<language>/* ./graphicode-utils/
 ```
 

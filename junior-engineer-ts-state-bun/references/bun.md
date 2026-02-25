@@ -1,5 +1,7 @@
 # Bun Runtime Environment
 
+This is a list of some Bun API references. When you need to use a specific API and are unsure how to use it, you can query it using the context7 MCP.
+
 ## APIs supported by Bun
 
 | Topic | APIs |
