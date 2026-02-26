@@ -49,23 +49,3 @@ Then, read the `state.graphig.json` file under each state directory. Any state w
 ```ts
 stateId1.enable(); // assuming stateId1's description contains the [START] marker
 ```
-
-## 3 start the project
-
-```sh
-bun run <entryDir>/launcher.ts
-```
-
-## 99. Stop the project
-
-If the user asks to stop the project, find and kill the running process:
-
-```sh
-kill <pid>
-```
-
-To find the pid of the running Bun process:
-
-```sh
-pgrep -f 'launcher.ts'
-```
