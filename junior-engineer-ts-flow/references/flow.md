@@ -21,32 +21,53 @@ The main process cannot run by itself and requires minor processes.
 
 **Lines following # minor is minor process, representing that a certain algorithm node in the main process has an effect from / to the state node.**
 
-In details:
+There are three types of relationships, indicated by a prefix symbol:
 
-* $ represents a subscription.
-* & represents a pull.
-* @ represents a push.
+* `$` represents a subscription.
+* `&` represents a pull.
+* `@` represents a push.
 
-For example, this means that algorithm node dir1/a subscribes to the event1 event of state dir2/x, and the event data is received by dir1/a's `data1` field. When the event1 event occurs, algorithm dir1/a will start executing:
+### subscribe ($)
+
+Algorithm node subscribes to a state event. When the event fires, the event data is received by the algorithm node's field and the algorithm starts executing:
 
 ```md
 # minor
 $dir2/x.event1 -> dir1/a.data1
 ```
 
-For example, this means that node dir1/b will call readData1 method from state dir2/y to get some data into its `data2` field before execution:
+This means algorithm node dir1/a subscribes to the event1 event of state dir2/x, and the event data is received by dir1/a's `data1` field.
+
+### pull (&)
+
+Algorithm node calls a state read method to get data into one of its fields before execution:
 
 ```md
 # minor
 &dir2/y.readData1 -> dir1/b.data2
 ```
 
-For example, this means that algorithm node dir1/c's `data3` output will call the writeData2 method of state dir2/z to push some data after execution:
+This means node dir1/b calls readData1 from state dir2/y and stores the result in its `data2` field.
+
+If the read method requires parameters, they can be sourced from the algorithm node's `subscribes` or `passes` fields and listed in parentheses after the line:
+
+```md
+# minor
+&dir2/y.readData1 -> dir1/b.data2 (subscribes.xxx, passes.yyy)
+```
+
+This means `readData1` is called with two arguments: `subscribes.xxx` and `passes.yyy` from the algorithm node dir1/b.
+
+### push (@)
+
+Algorithm node calls a state write method to push data after execution:
 
 ```md
 # minor
 dir1/c.data3 -> @dir2/z.writeData2
 ```
+
+This means algorithm node dir1/c's `data3` output is passed to the writeData2 method of state dir2/z.
 
 If a state method does not require any parameters and only needs to be called after the algorithm finishes execution, use `__null` as the algorithm field. In this case, the state method will be called without any arguments:
 

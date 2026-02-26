@@ -13,7 +13,13 @@ type NodeOutput = {
 
 type NodeFn = (input: NodeInput) => NodeOutput | Promise<NodeOutput>;
 
-type StateLink = { state: any; method: string; field: string };
+type PullParam = { source: 'subscribes' | 'passes'; key: string };
+
+function resolvePath(obj: Record<string, any>, path: string): any {
+  return path.split('.').reduce((cur, k) => cur?.[k], obj);
+}
+
+type StateLink = { state: any; method: string; field: string; params?: PullParam[] };
 
 class Flow {
   private _nextNodes = new Map<NodeFn, Set<NodeFn>>();
@@ -37,7 +43,8 @@ class Flow {
     state: any,
     stateMethod: string,
     node: NodeFn,
-    nodeField: string
+    nodeField: string,
+    params?: PullParam[]
   ) {
     if (type === "$") {
       this._subscriptionFields.set(node, nodeField);
@@ -48,7 +55,7 @@ class Flow {
       });
     } else if (type === "&") {
       if (!this._pulls.has(node)) this._pulls.set(node, []);
-      this._pulls.get(node)!.push({ state, method: stateMethod, field: nodeField });
+      this._pulls.get(node)!.push({ state, method: stateMethod, field: nodeField, params });
     } else if (type === "@") {
       if (!this._pushes.has(node)) this._pushes.set(node, []);
       this._pushes.get(node)!.push({ state, method: stateMethod, field: nodeField });
@@ -64,7 +71,14 @@ class Flow {
     const pullLinks = this._pulls.get(node);
     if (pullLinks) {
       for (const p of pullLinks) {
-        pulls[p.field] = p.state[p.method]();
+        if (p.params && p.params.length > 0) {
+          const args = p.params.map(({ source, key }) =>
+            resolvePath(source === 'subscribes' ? subscribes : passes, key)
+          );
+          pulls[p.field] = p.state[p.method](...args);
+        } else {
+          pulls[p.field] = p.state[p.method]();
+        }
       }
     }
 

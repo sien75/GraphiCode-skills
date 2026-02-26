@@ -75,11 +75,11 @@ import TypeI from '../../types/TypeI';
 class XXX extends Subscription implements Status {
   private someState: xxx;
 
-  public enable() {
+  public override enable() {
     // write init code here if have, do not write in constructor
     super.enable();
   }
-  public disable() {
+  public override disable() {
     // write unmount code here if have
     super.disable();
   }
