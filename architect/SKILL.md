@@ -34,7 +34,7 @@ For example, if the user wants to add role tags to a management system, and ther
 
 You must coordinate algorithms, states, and types. Reuse them if the functionality and runtimeEnv match; otherwise, create new ones.
 
-If the user talks to you about things unrelated to the programming project, you need to politely remind the user that this is not within your scope of responsibility.
+Remember, when creating new directories (IDs), algorithm, state, and flow names should start with a lowercase letter, while type names should start with an uppercase letter.
 
 # Shell Command Usage
 

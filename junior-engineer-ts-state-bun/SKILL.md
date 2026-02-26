@@ -75,14 +75,13 @@ import TypeI from '../../types/TypeI';
 class XXX extends Subscription implements Status {
   private someState: xxx;
 
-  public enabled = false; // disabled initially
   public enable() {
-    // write init code here, do not write in constructor
-    this.enabled = true;
+    // write init code here if have, do not write in constructor
+    super.enable();
   }
   public disable() {
-    // write unmount code here
-    this.enabled = false;
+    // write unmount code here if have
+    super.disable();
   }
 
   public readData1(params: { x: TypeX }): { a: TypeA } {

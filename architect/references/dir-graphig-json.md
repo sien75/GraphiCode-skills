@@ -15,3 +15,13 @@ The config file names are:
 * `algorithm.graphig.json` — in algorithmDirs
 * `state.graphig.json` — in stateDirs
 * `type.graphig.json` — in typeDirs
+
+## special prefix for state descriptions
+
+In `state.graphig.json`, if a state's description starts with `[START] `, it means this state needs to be initialized and executed at the very beginning of the program (i.e., it is a startup state). For example:
+
+```json
+{
+  "Store": "[START] Manages the global application state"
+}
+``` 

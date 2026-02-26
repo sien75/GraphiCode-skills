@@ -73,7 +73,11 @@ class Flow {
     const pushLinks = this._pushes.get(node);
     if (pushLinks) {
       for (const p of pushLinks) {
-        p.state[p.method](output.pushes[p.field]);
+        if (p.field === "__null") {
+          p.state[p.method]();
+        } else {
+          p.state[p.method](output.pushes[p.field]);
+        }
       }
     }
 

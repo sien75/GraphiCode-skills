@@ -48,21 +48,32 @@ For example, this means that algorithm node dir1/c's `data3` output will call th
 dir1/c.data3 -> @dir2/z.writeData2
 ```
 
-## a complex example
-
-The last example, dir1/a subscribes to dir2/x.event1 into its data1 field, dir1/b pulls dir2/y.readData1 into its data2 field, dir1/c and dir1/d are two branches from dir1/b, pushing data3 and data4 to dir2/z's write methods:
+If a state method does not require any parameters and only needs to be called after the algorithm finishes execution, use `__null` as the algorithm field. In this case, the state method will be called without any arguments:
 
 ```md
-# major
-dir1/a -> dir1/b -> dir1/c
-dir1/b -> dir1/d
-
 # minor
-$dir2/x.event1 -> dir1/a.data1
-&dir2/y.readData1 -> dir1/b.data2
-dir1/c.data3 -> @dir2/z.writeData1
-dir1/d.data4 -> @dir2/z.writeData2
+dir1/c.__null -> @dir2/z.writeData2
 ```
+
+## state built-in enable / disable
+
+Every state node has a set of built-in methods that are **not listed in its README**:
+
+| type | method | description |
+|------|--------|-------------|
+| write (push `@`) | `enabled` | activates the state |
+| write (push `@`) | `disabled` | deactivates the state |
+| read (pull `&`) | `isEnabled` | returns whether the state is currently enabled |
+| subscribe (`$`) | `onEnabledChange` | fires whenever the enabled/disabled status changes |
+
+**Not all states start enabled.** Only a subset of states are enabled at launch; the rest remain disabled until explicitly activated. During flow execution, an algorithm node can push to a state's `enabled` method to dynamically activate it:
+
+```md
+# minor
+dir1/a.__null -> @dir2/x.enabled
+```
+
+This is a common pattern when a flow needs to conditionally bring a state online at runtime.
 
 ## one major process in one flow file
 

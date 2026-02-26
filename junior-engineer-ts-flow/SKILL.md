@@ -49,26 +49,24 @@ Given this flow README:
 ```md
 # major
 dir1/a -> dir1/b -> dir1/c
-dir1/b -> dir1/d
 
 # minor
 $dir2/x.event1 -> dir1/a.data1
 &dir2/y.readData1 -> dir1/b.data2
 dir1/c.data3 -> @dir2/z.writeData1
-dir1/d.data4 -> @dir2/z.writeData2
+dir1/c.__null -> @dir2/z.writeData3
 ```
 
 The corresponding TypeScript code is:
 
 ```ts
 import { Flow } from "graphicode-utils";
-import a from "<algorithmDir>/a";
-import b from "<algorithmDir>/b";
-import c from "<algorithmDir>/c";
-import d from "<algorithmDir>/d";
-import x from "<stateDir>/x";
-import y from "<stateDir>/y";
-import z from "<stateDir>/z";
+import a from "dir1/a";
+import b from "dir1/b";
+import c from "dir1/c";
+import x from "dir2/x";
+import y from "dir2/y";
+import z from "dir2/z";
 
 class ExampleFlow extends Flow {
   constructor() {
@@ -78,7 +76,7 @@ class ExampleFlow extends Flow {
     this._linkMinorRelation('$', x, 'event1', a, 'data1');
     this._linkMinorRelation('&', y, 'readData1', b, 'data2');
     this._linkMinorRelation('@', z, 'writeData1', c, 'data3');
-    this._linkMinorRelation('@', z, 'writeData2', d, 'data4');
+    this._linkMinorRelation('@', z, 'writeData3', c, '__null');
   }
 }
 
@@ -88,6 +86,8 @@ export default exampleFlow;
 ```
 
 Note that `<algorithmDir>` and `<stateDir>` should be replaced with the actual relative paths resolved from `graphig.json`'s `algorithmDirs` and `stateDirs`.
+
+In general, if a state method such as `writeData3` does not require any parameters and only needs to be called after the algorithm finishes execution, you can use `__null`. In this case, `writeData3` will be called but will not receive any arguments.
 
 # Shell Command Usage
 
