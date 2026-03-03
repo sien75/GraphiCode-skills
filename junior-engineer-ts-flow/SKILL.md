@@ -76,8 +76,8 @@ class ExampleFlow extends Flow {
     this._linkMinorRelation('$', x, 'event1', a, 'data1');
     this._linkMinorRelation('&', y, 'readData1', b, 'data2');
     this._linkMinorRelation('&', y, 'readData2', b, 'data3', [
-      { source: 'subscribes', key: 'xxx' },
-      { source: 'passes', key: 'yyy' },
+      { key: 'xxx' },
+      { key: 'yyy' },
     ]);
     this._linkMinorRelation('@', z, 'writeData1', c, 'data3');
     this._linkMinorRelation('@', z, 'writeData3', c, '__null');
@@ -93,16 +93,16 @@ Note that `<algorithmDir>` and `<stateDir>` should be replaced with the actual r
 
 In general, if a state method such as `writeData3` does not require any parameters and only needs to be called after the algorithm finishes execution, you can use `__null`. In this case, `writeData3` will be called but will not receive any arguments.
 
-If a pull method requires parameters, pass them as the optional 6th argument — an array of `{ source, key }` objects. Each entry resolves a parameter from the algorithm node's `subscribes` or `passes` fields at runtime, in order:
+If a pull method requires parameters, pass them as the optional 6th argument — an array of `{ key }` objects. Each entry resolves a parameter from the algorithm node's input fields at runtime, in order:
 
 ```ts
 this._linkMinorRelation('&', y, 'readData2', b, 'data3', [
-  { source: 'subscribes', key: 'xxx' },
-  { source: 'passes', key: 'yyy' },
+  { key: 'xxx' },
+  { key: 'yyy' },
 ]);
 ```
 
-This corresponds to the flow file notation `&dir2/y.readData2 -> dir1/b.data3 (subscribes.xxx, passes.yyy)`.
+This corresponds to the flow file notation `&dir2/y.readData2 -> dir1/b.data3 (xxx, yyy)`.
 
 # Shell Command Usage
 

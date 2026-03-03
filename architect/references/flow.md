@@ -49,14 +49,14 @@ Algorithm node calls a state read method to get data into one of its fields befo
 
 This means node dir1/b calls readData1 from state dir2/y and stores the result in its `data2` field.
 
-If the read method requires parameters, they can be sourced from the algorithm node's `subscribes` or `passes` fields and listed in parentheses after the line:
+If the read method requires parameters, they can be sourced from the algorithm node's input fields and listed in parentheses after the line:
 
 ```md
 # minor
-&dir2/y.readData1 -> dir1/b.data2 (subscribes.xxx, passes.yyy)
+&dir2/y.readData1 -> dir1/b.data2 (xxx, yyy)
 ```
 
-This means `readData1` is called with two arguments: `subscribes.xxx` and `passes.yyy` from the algorithm node dir1/b.
+This means `readData1` is called with two arguments: `xxx` and `yyy` from the algorithm node dir1/b's input.
 
 ### push (@)
 

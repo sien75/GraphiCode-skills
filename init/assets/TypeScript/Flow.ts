@@ -1,19 +1,11 @@
 type RelationType = "$" | "&" | "@";
 
-type NodeInput = {
-  subscribes: Record<string, any>;
-  pulls: Record<string, any>;
-  passes: Record<string, any>;
-};
-
-type NodeOutput = {
-  pushes: Record<string, any>;
-  passes: Record<string, any>;
-};
+type NodeInput = Record<string, any>;
+type NodeOutput = Record<string, any>;
 
 type NodeFn = (input: NodeInput) => NodeOutput | Promise<NodeOutput>;
 
-type PullParam = { source: 'subscribes' | 'passes'; key: string };
+type PullParam = { key: string };
 
 function resolvePath(obj: Record<string, any>, path: string): any {
   return path.split('.').reduce((cur, k) => cur?.[k], obj);
@@ -31,10 +23,10 @@ class Flow {
 
   protected _composeMajorPipeline(...nodes: NodeFn[]) {
     for (let i = 0; i < nodes.length - 1; i++) {
-      if (!this._nextNodes.has(nodes[i])) {
-        this._nextNodes.set(nodes[i], new Set());
+      if (!this._nextNodes.has(nodes[i]!)) {
+        this._nextNodes.set(nodes[i]!, new Set());
       }
-      this._nextNodes.get(nodes[i])!.add(nodes[i + 1]);
+      this._nextNodes.get(nodes[i]!)!.add(nodes[i + 1]!);
     }
   }
 
@@ -67,30 +59,31 @@ class Flow {
     subscribes: Record<string, any>,
     passes: Record<string, any>
   ) {
-    const pulls: Record<string, any> = {};
+    const currentInput: Record<string, any> = { ...subscribes, ...passes };
+
     const pullLinks = this._pulls.get(node);
     if (pullLinks) {
       for (const p of pullLinks) {
         if (p.params && p.params.length > 0) {
-          const args = p.params.map(({ source, key }) =>
-            resolvePath(source === 'subscribes' ? subscribes : passes, key)
+          const args = p.params.map(({ key }) =>
+            resolvePath(currentInput, key)
           );
-          pulls[p.field] = p.state[p.method](...args);
+          currentInput[p.field] = p.state[p.method](...args);
         } else {
-          pulls[p.field] = p.state[p.method]();
+          currentInput[p.field] = p.state[p.method]();
         }
       }
     }
 
-    const output = await node({ subscribes, pulls, passes });
+    const output = await node(currentInput);
 
     const pushLinks = this._pushes.get(node);
     if (pushLinks) {
       for (const p of pushLinks) {
         if (p.field === "__null") {
           p.state[p.method]();
-        } else {
-          p.state[p.method](output.pushes[p.field]);
+        } else if (p.field in output) {
+          p.state[p.method](output[p.field]);
         }
       }
     }
@@ -99,10 +92,11 @@ class Flow {
     if (nexts) {
       for (const next of nexts) {
         if (this._subscriptionFields.has(next)) {
+          const nextField = this._subscriptionFields.get(next)!;
           const existing = this._pendingPasses.get(next) ?? {};
-          this._pendingPasses.set(next, { ...existing, ...output.passes });
+          this._pendingPasses.set(next, { ...existing, ...output });
         } else {
-          await this._execute(next, {}, { ...output.passes });
+          await this._execute(next, {}, { ...output });
         }
       }
     }

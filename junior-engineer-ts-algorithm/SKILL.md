@@ -31,19 +31,14 @@ For example, the following readme corresponds to this code:
 
 ```md
 # input
-## subscribes
 a: dir1/TypeA
 b: dir1/TypeB
-## pulls
 c: dir2/TypeC
-## passes
 d: dir2/TypeD
 
 # output
-## pushes
 e: dir2/TypeE
 f: dir2/TypeF
-## passes
 
 # description
 combine a and b to e and f.
@@ -58,24 +53,15 @@ import TypeE from 'dir2/TypeE';
 import TypeF from 'dir2/TypeF';
 
 type Input = {
-  subscribes: {
-    a: TypeA;
-    b: TypeB;
-  };
-  pulls: {
-    c: TypeC;
-  };
-  passes: {
-    d: TypeD;
-  };
+  a: TypeA;
+  b: TypeB;
+  c: TypeC;
+  d: TypeD;
 };
 
 type Output = {
-  pushes: {
-    e: TypeE;
-    f: TypeF;
-  };
-  passes: {};
+  e: TypeE;
+  f: TypeF;
 };
 
 function xxx(input: Input): Output {
