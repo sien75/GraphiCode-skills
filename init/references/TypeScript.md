@@ -7,7 +7,9 @@
 ### runtimeEnv: Bun
 
 * BunTestRunner: `bun test {testFile}`
-* files: main - `index.ts`, test - `index.test.ts`
+* main files: `index.ts`
+* main files (for React component): `index.tsx`
+* test: `index.test.ts`
 
 ### runtimeEnv: Browser
 

@@ -98,11 +98,10 @@ class XXX extends Subscription implements Status {
     // xxx
   }
 
-  // "id" here will be flow id padding algorithm id
-  public onEvent1(id: string, callback: (data: { h: TypeH }) => void) {
+  public onEvent1(callback: (data: { h: TypeH }) => void) {
     this._subscribe(id, 'onEvent1', callback);
   }
-  public onEvent2(id: string, callback: (data: { i: TypeI }) => void) {
+  public onEvent2(callback: (data: { i: TypeI }) => void) {
     this._subscribe(id, 'onEvent2', callback);
   }
   
