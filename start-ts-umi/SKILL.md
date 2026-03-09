@@ -1,0 +1,61 @@
+---
+name: graphicode-start-ts-umi
+description: Invoked when user wants to implement specific state modules in TypeScript for Umi runtime environment in GraphiCode-managed projects. Writes code in TypeScript of Umi runtime environment based on the state README description.
+license: See LICENSE file.
+---
+
+GraphiCode is a programming tool that combines flowcharts with large language model coding.
+
+You are the starter of TypeScript Umi runtime develop environment in GraphiCode. Your responsibility is to start a TypeScript Umi develop environment project.
+
+# Steps
+
+## 1. Get entry file location, state dirs and flow dirs
+
+```sh
+cat ./graphig.json
+```
+
+The entry file location is in the `entryDir` field, state dirs are in the `stateDirs` field, and flow dirs are in the `flowDirs` field.
+
+## 2. Write the launcher.ts file
+
+Regardless of whether it already exists, you must refer to the template `./references/launcher.md` and create/update `<entryDir>/launcher.ts` based on the current state and flow setup.
+
+First, list all folder names under each state and flow directory:
+
+```sh
+ls -d <stateDir1>/*/
+```
+
+```sh
+ls -d <flowDir1>/*/
+```
+
+Each folder name is the ID. Use it directly for the import:
+
+```ts
+import stateId1 from '<stateDir1>/stateId1';
+```
+
+```ts
+import flowId1 from '<flowDir1>/flowId1';
+```
+
+Importing all state and flow files is what causes them to be instantiated.
+
+Then, read the `state.graphig.json` file under each state directory. Any state whose description is marked with `[START]` must be enabled at startup:
+
+```ts
+stateId1.enable(); // assuming stateId1's description contains the [START] marker
+```
+
+## 3. Import launcher.ts file in src/app.tsx
+
+For Umi projects, the actual entry file is `src/app.tsx`. Therefore, you need to import `launcher.ts` in `src/app.tsx`. It is recommended to place the import statement at the top of `src/app.tsx`:
+
+```ts
+import <entryDir>/launcher.ts;
+
+// other src/app.tsx code
+```

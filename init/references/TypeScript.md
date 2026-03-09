@@ -6,13 +6,19 @@
 
 ### runtimeEnv: Bun
 
-* BunTestRunner: `bun test {testFile}`
+* test runner: `bun test {testFile}`
 * main files: `index.ts`
 * main files (for React component): `index.tsx`
 * test: `index.test.ts`
 
-### runtimeEnv: Browser
+### runtimeEnv: Umi
 
-* BunTestRunner: `bun test {testFile}`
+* main files: `index.ts`
+* main files (for React component): `index.tsx`
+* test: `index.test.ts`
+
+<!-- ### runtimeEnv: Browser
+
+* test runner: `bun test {testFile}`
 * Playwright: `bunx playwright-test {testFile}`
-* files: main - `index.ts`, test - `index.test.ts`
+* files: main - `index.ts`, test - `index.test.ts` -->
