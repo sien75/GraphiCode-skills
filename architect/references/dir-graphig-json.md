@@ -25,3 +25,5 @@ In `state.graphig.json`, if a state's description starts with `[START] `, it mea
   "Store": "[START] Manages the global application state"
 }
 ``` 
+
+**So if you determine that a State needs to be initialized at startup, you should prefix its description with `[START]`.**

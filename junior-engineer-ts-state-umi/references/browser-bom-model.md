@@ -115,3 +115,11 @@ export { bomState };
 Note 1:
 
 Only within State corresponding to React functional components and hooks, **the callback of `this._subscribe` can receive two parameters**, namely the current value and the previous value.
+
+Note 2:
+
+To import assets such as images, import them from `src/assets`. The imported value is a string representing the asset's URL.
+
+Note 3:
+
+After adding a page, you must update the routing information in .umirc.ts.

@@ -95,3 +95,7 @@ export { userNetworkState };
 Note 1:
 
 Only within State corresponding to React functional components and hooks, **the callback of `this._subscribe` can receive two parameters**, namely the current value and the previous value.
+
+Note 2:
+
+Network request functions (e.g. `fetchUserApi`) are imported from `src/services/`. Umi projects typically place all network request logic in this directory.

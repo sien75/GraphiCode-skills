@@ -23,24 +23,34 @@ If `graphig.json` already exists, inform the user that the project is already in
 Ask the user for the following fields (all at once):
 
 * **appName** — the application name
-* **language** — the programming language (e.g., TypeScript, Python)
-* **devEnv** — the development environment (e.g., Bun, Node.js, Deno)
-* **runtimeEnv** — the runtime environment (e.g., Bun, Node.js, Browser)
-* **entryDir** — the directory where the entry file is located (e.g., `src/entry`)
-* **flowDirs** — directories for flow files (e.g., `{ "src/flows": "default flow directory" }`)
-* **algorithmDirs** — directories for algorithm files (e.g., `{ "src/algorithms": "default algorithm directory" }`)
-* **stateDirs** — directories for state files (e.g., `{ "src/states": "default state directory" }`)
-* **typeDirs** — directories for type files (e.g., `{ "src/types": "default type directory" }`)
+* **language** — the programming language
+* **devEnv** — the development environment
+* **runtimeEnv** — the runtime environment
 
-If the user is unsure about any field, suggest reasonable defaults based on the project context.
+## 2. Gather more info
 
-## 2. Create graphig.json
+Read `./references/options.md` from this skill's directory to get the available devEnv/runtimeEnv options for the chosen language and their corresponding values:
 
-First, read `./references/<language>.md` (e.g., `./references/TypeScript.md`) from this skill's directory to get the available devEnv/runtimeEnv options and their corresponding `projectConfig`, `mainFileName`, `testFileName`, `testCommand` values.
+* **entryDir** — the directory where the entry file is located
+* **flowDirs**
+* **algorithmDirs**
+* **stateDirs**
+* **typeDirs**
+* **projectConfig**
+* **mainFileName**
+* **testFileName**
+* **testCommand**
 
 If the user's provided `language`, `devEnv`, or `runtimeEnv` does not match any entry in the reference file, prompt the user to revise their input before proceeding.
 
-Then create `graphig.json` in the project root, combining the user's input from step 1 and the values looked up from the language reference file:
+First show the default value in option.md, and ask user if want to change some value.
+
+After user confirmed, execute the next step.
+
+## 3. Create graphig.json
+
+
+Create `graphig.json` in the project root, combining the user's input from step 1 and the values looked up from the language reference file:
 
 ```sh
 echo '{
@@ -60,7 +70,7 @@ echo '{
 }' > ./graphig.json
 ```
 
-## 3. Create directory structure
+## 4. Create directory structure
 
 For each directory (key) in flowDirs/algorithmDirs/stateDirs/typeDirs:
 
@@ -78,7 +88,7 @@ mkdir -p <stateDir> && echo '{}' > <stateDir>/state.graphig.json
 mkdir -p <typeDir> && echo '{}' > <typeDir>/type.graphig.json
 ```
 
-## 4. Copy utility files
+## 5. Copy utility files
 
 Copy the language-specific utility files from this skill's assets directory to the project's `graphicode-utils/` directory:
 
@@ -89,7 +99,7 @@ cp <this-skill-dir>/assets/<language>/* ./graphicode-utils/
 
 Replace `<language>` with the value of the `language` field in `graphig.json` (e.g., `TypeScript`).
 
-## 5. Confirm to the user
+## 6. Confirm to the user
 
 After all files and directories are created, print a summary of what was created and confirm the initialization is complete.
 
