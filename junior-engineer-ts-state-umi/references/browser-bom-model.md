@@ -3,27 +3,16 @@
 Native browser BOM interfaces include window / screen / navigator, etc., which are encapsulated to provide system-level event listening and state reading. Below is an example of converting a State README into TypeScript code:
 
 # read
-## queryWindowSize
-WindowSize
-
-## queryOnlineStatus
-boolean
+queryWindowSize: () -> WindowSize
+queryOnlineStatus: () -> boolean
 
 # write
-## scrollTo
-> ScrollOptions
-__null
-
-## alert
-> string
-__null
+scrollTo: (options: ScrollOptions) -> void
+alert: (msg: string) -> void
 
 # event
-## onResize
-WindowSize
-
-## onOnlineStatusChange
-boolean
+onResize: (cb: (size: WindowSize) -> void) -> void
+onOnlineStatusChange: (cb: (status: boolean) -> void) -> void
 
 # resides-in
 browser-BOM

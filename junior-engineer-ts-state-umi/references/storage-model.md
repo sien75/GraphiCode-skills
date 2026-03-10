@@ -3,25 +3,16 @@
 Encapsulates browser `localStorage` / `sessionStorage` / `indexedDB` interfaces to provide reading, writing, and monitoring of persistent data changes. Below is an example of converting a State README into TypeScript code:
 
 # read
-## queryItem
-> StorageKey
-any
-## queryAllKeys
-StorageKeys
+queryItem: (key: StorageKey) -> any
+queryAllKeys: () -> StorageKeys
 
 # write
-## setItem
-> StorageEntry
-__null
-## removeItem
-> StorageKey
-__null
-## clear
-__null
+setItem: (entry: StorageEntry) -> void
+removeItem: (key: StorageKey) -> void
+clear: () -> void
 
 # event
-## onStorageChange
-any
+onStorageChange: (cb: (data: any) -> void) -> void
 
 # resides-in
 browser-storage

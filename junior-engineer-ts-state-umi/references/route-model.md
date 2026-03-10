@@ -3,26 +3,17 @@
 In frontend applications, routing management is a common requirement. It's necessary to encapsulate routing operations and location information listening to map URL state to business state. Below is a specific example of converting a State README into TypeScript code:
 
 # read
-## queryLocation
-Location
-## queryParams
-Params
-## querySearchParams
-SearchParams
+queryLocation: () -> Location
+queryParams: () -> Params
+querySearchParams: () -> SearchParams
 
 # write
-## push
-> NavigatePath
-__null
-## replace
-> NavigatePath
-__null
-## back
-__null
+push: (path: NavigatePath) -> void
+replace: (path: NavigatePath) -> void
+back: () -> void
 
 # event
-## onLocationChange
-Location
+onLocationChange: (cb: (loc: Location) -> void) -> void
 
 # resides-in
 browser-BOM

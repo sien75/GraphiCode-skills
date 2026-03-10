@@ -6,34 +6,20 @@ Below is an example of state management for a large file chunked upload manager:
 
 ```md
 # read
-## queryUploadQueue
-UploadTask[]
-## queryGlobalProgress
-number
-## queryTaskStatus
-> string
-TaskStatus
+queryUploadQueue: () -> UploadTask[]
+queryGlobalProgress: () -> number
+queryTaskStatus: (taskId: string) -> TaskStatus
 
 # write
-## addTasks
-> File[]
-__null
-## startTask
-> string
-__null
-## pauseTask
-> string
-__null
-## cancelTask
-> string
-__null
+addTasks: (files: File[]) -> void
+startTask: (taskId: string) -> void
+pauseTask: (taskId: string) -> void
+cancelTask: (taskId: string) -> void
 
 # event
-## onTaskProgress
-TaskProgressPayload
-## onTaskStatusChange
-TaskStatusChangePayload
-## onAllComplete
+onTaskProgress: (cb: (payload: TaskProgressPayload) -> void) -> void
+onTaskStatusChange: (cb: (payload: TaskStatusChangePayload) -> void) -> void
+onAllComplete: (cb: () -> void) -> void
 
 # resides-in
 browser-storage

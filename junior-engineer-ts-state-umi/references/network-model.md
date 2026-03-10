@@ -4,21 +4,15 @@ Most frontend applications need to request dynamic data through APIs. In Umi app
 
 ```md
 # read
-## queryUserInfo
-> number
-UserInfo
-## queryAllUserInfo
-UserInfoMap
+queryUserInfo: (id: number) -> UserInfo
+queryAllUserInfo: () -> UserInfoMap
 
 # write
-## triggerRequest
-number
+triggerRequest: (id: number) -> void
 
 # event
-## onLoadingChange
-boolean
-## onUserInfoChange
-UserInfo
+onLoadingChange: (cb: (loading: boolean) -> void) -> void
+onUserInfoChange: (cb: (info: UserInfo) -> void) -> void
 
 # resides-in
 network

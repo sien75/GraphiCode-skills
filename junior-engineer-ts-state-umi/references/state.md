@@ -10,42 +10,37 @@ State nodes have 3 types of methods for external interaction: read/write/event. 
 
 This example means that this state node file has:
 
-1. two read-type methods readData1 and readData2, where readData1's input is a dir1/TypeX data and output is a dir1/TypeA data, and readData2's does not have input and output is dir1/TypeB and dir1/TypeC data
-2. two write-type methods writeData1 and writeData2, where writeData1's input is dir2/TypeD and writeData2's input is dir2/TypeE, dir2/TypeF and dir2/TypeG
-3. two event-type methods onEvent1 and onEvent2, where onEvent1 sends a dir1/TypeH event and onEvent2 sends a dir1/TypeI event
+1. two read-type methods `readData1` and `readData2`, where `readData1`'s input is a `dir1/TypeX` data and output is a `dir1/TypeA` data, and `readData2`'s does not have input and output is `{b: dir1/TypeB, c: dir1/TypeC}`.
+2. two write-type methods `writeData1` and `writeData2`, where `writeData1`'s input is `dir2/TypeD` and `writeData2`'s input is `dir2/TypeE`, `dir2/TypeF` and `dir2/TypeG`.
+3. two event-type methods `onEvent1` and `onEvent2`, where `onEvent1` sends a `dir1/TypeH` event and `onEvent2` sends a `dir1/TypeI` event via callbacks.
 4. the description of this state is explained under the description heading
 
 ```md
 # read
-## readData1
-> dir1/TypeX
-dir1/TypeA
-## readData2
-dir1/TypeB
-dir1/TypeC
+readData1: (x: dir1/TypeX) -> dir1/TypeA
+readData2: () -> {b: dir1/TypeB, c: dir1/TypeC}
+readData3: (y?: dir1/TypeY) -> dir1/TypeZ
 
 # write
-## writeData1
-dir2/TypeD
-## writeData2
-dir2/TypeE
-dir2/TypeF
-dir2/TypeG
+writeData1: (d: dir2/TypeD) -> void
+writeData2: (e: dir2/TypeE, f?: dir2/TypeF, g: dir2/TypeG) -> void
 
 # event
-## onEvent1
-dir1/TypeH
-## onEvent2
-dir1/TypeI
+onEvent1: (cb: (h: dir1/TypeH) -> void) -> void
+onEvent2: (cb: (i?: dir1/TypeI) -> void) -> void
 
 # resides-in
 memory
 
-### description
+# description
 This state is a memory state, which means...
 ```
 
 Here `dir1/TypeA` is a type ID with its directory prefix. The directory corresponds to one of the `typeDirs` in `graphig.md`, and the type details are defined there, which you need to look up accordingly.
+
+## optional parameters
+
+Parameters in read/write methods or event callbacks can be marked as optional by appending a `?` to the parameter name. For example: `readData: (id?: string) -> Data` or `writeData: (force?: boolean) -> void`.
 
 ## resides-in
 

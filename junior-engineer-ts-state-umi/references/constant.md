@@ -3,19 +3,12 @@
 Manage static business constants, configuration items, or hard-coded enumeration data that do not require React's reactive system for updates.
 
 # read
-## queryStatusList
-StatusList
-
-## queryAppConfig
-AppConfig
-
-## queryErrorCode
-> string
-number
+queryStatusList: () -> StatusList
+queryAppConfig: () -> AppConfig
+queryErrorCode: (key: string) -> number
 
 # event
-## onConfigChange
-AppConfig
+onConfigChange: (cb: (config: AppConfig) -> void) -> void
 
 # resides-in
 memory

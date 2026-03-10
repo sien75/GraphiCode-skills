@@ -30,26 +30,16 @@ For example, the following readme corresponds to this code:
 
 ```md
 # read
-## readData1
-> TypeX
-TypeA
-## readData2
-TypeB
-TypeC
+readData1: (x: TypeX) -> TypeA
+readData2: () -> {b: TypeB, c: TypeC}
 
 # write
-## writeData1
-TypeD
-## writeData2
-TypeE
-TypeF
-TypeG
+writeData1: (d: TypeD) -> void
+writeData2: (e: TypeE, f: TypeF, g: TypeG) -> void
 
 # event
-## onEvent1
-TypeH
-## onEvent2
-TypeI
+onEvent1: (cb: (h: TypeH) -> void) -> void
+onEvent2: (cb: (i: TypeI) -> void) -> void
 
 # resides-in
 memory
