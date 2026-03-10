@@ -40,7 +40,7 @@ g: dir2/TypeG
 Transform a and b to e and f.
 ```
 
-Each parameter line follows the format `paramName: dir1/TypeA`, where `paramName` is the parameter name used in code, and `dir1/TypeA` is a type ID with its directory prefix. The directory corresponds to one of the `typeDirs` in `graphig.json`, and the type details are defined there, which you need to look up accordingly.
+Each parameter line follows the format `paramName: dir1/TypeA`, where `paramName` is the parameter name used in code, and `dir1/TypeA` is a type ID with its directory prefix. The directory corresponds to one of the `typeDirs` in `graphig.md`, and the type details are defined there, which you need to look up accordingly.
 
 ## important notes
 

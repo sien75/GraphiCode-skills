@@ -45,7 +45,7 @@ memory
 This state is a memory state, which means...
 ```
 
-Here `dir1/TypeA` is a type ID with its directory prefix. The directory corresponds to one of the `typeDirs` in `graphig.json`, and the type details are defined there, which you need to look up accordingly.
+Here `dir1/TypeA` is a type ID with its directory prefix. The directory corresponds to one of the `typeDirs` in `graphig.md`, and the type details are defined there, which you need to look up accordingly.
 
 ## resides-in
 
@@ -74,7 +74,7 @@ When writing states, **do not mention algorithms or flows**. States should only 
 
 **Check `rumtimeEnv` to determine which resides-in options apply.**
 
-Not all resides-in options are available in every runtime environment. You must check the `runtimeEnv` field in `graphig.json` to determine which options apply. For example, in a Browser runtime, only the `browser-` prefixed options (browser-BOM, browser-DOM, browser-storage) are available, while options like `disk`, `stdout/stdin`, and `hardware` are not.
+Not all resides-in options are available in every runtime environment. You must check the `runtimeEnv` field in `graphig.md` to determine which options apply. For example, in a Browser runtime, only the `browser-` prefixed options (browser-BOM, browser-DOM, browser-storage) are available, while options like `disk`, `stdout/stdin`, and `hardware` are not.
 
 If the required resides-in is not covered by the list above, you may **define a custom one as appropriate**.
 

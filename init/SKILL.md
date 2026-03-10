@@ -1,22 +1,22 @@
 ---
 name: graphicode-init
-description: Invoked when the user wants to initialize a GraphiCode-managed project. Creates the graphig.json config file and the corresponding directory structure.
+description: Invoked when the user wants to initialize a GraphiCode-managed project. Creates the graphig.md config file and the corresponding directory structure.
 license: See LICENSE file.
 ---
 
 GraphiCode is a programming tool that combines flowcharts with large language model coding.
 
-This init skill is responsible for initializing a GraphiCode-managed project by collecting project information, creating `graphig.json`, and setting up the required directory structure.
+This init skill is responsible for initializing a GraphiCode-managed project by collecting project information, creating `graphig.md`, and setting up the required directory structure.
 
 # Steps
 
-## 0. Check if graphig.json already exists
+## 0. Check if graphig.md already exists
 
 ```sh
-cat ./graphig.json
+cat ./graphig.md
 ```
 
-If `graphig.json` already exists, inform the user that the project is already initialized and exit immediately.
+If `graphig.md` already exists, inform the user that the project is already initialized and exit immediately.
 
 ## 1. Collect project information from the user
 
@@ -45,29 +45,42 @@ If the user's provided `language`, `devEnv`, or `runtimeEnv` does not match any 
 
 First show the default value in option.md, and ask user if want to change some value.
 
-After user confirmed, execute the next step.
+After user confirmed, do the next step.
 
-## 3. Create graphig.json
+## 3. Create graphig.md
 
 
-Create `graphig.json` in the project root, combining the user's input from step 1 and the values looked up from the language reference file:
+Create `graphig.md` in the project root, combining the user's input from step 1 and the values looked up from the language reference file:
 
 ```sh
-echo '{
-  "appName": "<appName>",
-  "language": "<language>",
-  "devEnv": "<devEnv>",
-  "runtimeEnv": "<runtimeEnv>",
-  "projectConfig": "<projectConfig>",
-  "entryDir": "<entryDir>",
-  "mainFileName": "<mainFileName>",
-  "testFileName": "<testFileName>",
-  "testCommand": "<testCommand>",
-  "flowDirs": { "<dir1>": "<description1>" },
-  "algorithmDirs": { "<dir1>": "<description1>" },
-  "stateDirs": { "<dir1>": "<description1>" },
-  "typeDirs": { "<dir1>": "<description1>" }
-}' > ./graphig.json
+cat << 'EOF' > ./graphig.md
+# <appName>
+
+* **language**: <language>
+* **devEnv**: <devEnv>
+* **runtimeEnv**: <runtimeEnv>
+* **projectConfig**: <projectConfig>
+* **entryDir**: <entryDir>
+* **mainFileName**: <mainFileName>
+* **testFileName**: <testFileName>
+* **testCommand**: <testCommand>
+
+## flowDirs
+
+* `<dir1>`: <description1>
+
+## algorithmDirs
+
+* `<dir1>`: <description1>
+
+## stateDirs
+
+* `<dir1>`: <description1>
+
+## typeDirs
+
+* `<dir1>`: <description1>
+EOF
 ```
 
 ## 4. Create directory structure
@@ -79,13 +92,13 @@ For each directory (key) in flowDirs/algorithmDirs/stateDirs/typeDirs:
 
 ```sh
 # for each flowDir
-mkdir -p <flowDir> && echo '{}' > <flowDir>/flow.graphig.json
+mkdir -p <flowDir> && echo '# flow' > <flowDir>/flow.graphig.md
 # for each algorithmDir
-mkdir -p <algorithmDir> && echo '{}' > <algorithmDir>/algorithm.graphig.json
+mkdir -p <algorithmDir> && echo '# algorithm' > <algorithmDir>/algorithm.graphig.md
 # for each stateDir
-mkdir -p <stateDir> && echo '{}' > <stateDir>/state.graphig.json
+mkdir -p <stateDir> && echo '# state' > <stateDir>/state.graphig.md
 # for each typeDir
-mkdir -p <typeDir> && echo '{}' > <typeDir>/type.graphig.json
+mkdir -p <typeDir> && echo '# type' > <typeDir>/type.graphig.md
 ```
 
 ## 5. Copy utility files
@@ -97,7 +110,7 @@ mkdir -p ./graphicode-utils
 cp <this-skill-dir>/assets/<language>/* ./graphicode-utils/
 ```
 
-Replace `<language>` with the value of the `language` field in `graphig.json` (e.g., `TypeScript`).
+Replace `<language>` with the value of the `language` field in `graphig.md` (e.g., `TypeScript`).
 
 ## 6. Confirm to the user
 

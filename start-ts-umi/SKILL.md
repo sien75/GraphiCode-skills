@@ -13,7 +13,7 @@ You are the starter of TypeScript Umi runtime develop environment in GraphiCode.
 ## 1. Get entry file location, state dirs and flow dirs
 
 ```sh
-cat ./graphig.json
+cat ./graphig.md
 ```
 
 The entry file location is in the `entryDir` field, state dirs are in the `stateDirs` field, and flow dirs are in the `flowDirs` field.
@@ -44,7 +44,7 @@ import flowId1 from '<flowDir1>/flowId1';
 
 Importing all state and flow files is what causes them to be instantiated.
 
-Then, read the `state.graphig.json` file under each state directory. Any state whose description is marked with `[START]` must be enabled at startup:
+Then, read the `state.graphig.md` file under each state directory. Any state whose description is marked with `[START]` must be enabled at startup:
 
 ```ts
 stateId1.enable(); // assuming stateId1's description contains the [START] marker

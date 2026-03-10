@@ -89,7 +89,7 @@ const exampleFlow = new ExampleFlow();
 export default exampleFlow;
 ```
 
-Note that `<algorithmDir>` and `<stateDir>` should be replaced with the actual relative paths resolved from `graphig.json`'s `algorithmDirs` and `stateDirs`.
+Note that `<algorithmDir>` and `<stateDir>` should be replaced with the actual relative paths resolved from `graphig.md`'s `algorithmDirs` and `stateDirs`.
 
 In general, if a state method such as `writeData3` does not require any parameters and only needs to be called after the algorithm finishes execution, you can use `__null`. In this case, `writeData3` will be called but will not receive any arguments.
 
