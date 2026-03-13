@@ -67,7 +67,7 @@ cat ./<typeDir>/type.graphig.md
 
 ```sh
 # read a specific flow
-cat ./<flowDir>/<flowId>/README.md
+cat ./<flowDir>/<flowId>/README.d2.md
 # read a specific algorithm
 cat ./<algorithmDir>/<algorithmId>/README.md
 # read a specific state
@@ -82,7 +82,7 @@ When writing, you must update both the item file and the corresponding dir confi
 
 ```sh
 # write a specific flow (also update flow.graphig.md)
-echo '...' > ./<flowDir>/<flowId>/README.md
+echo '...' > ./<flowDir>/<flowId>/README.d2.md
 echo 'new config' > ./<flowDir>/flow.graphig.md
 
 # write a specific algorithm (also update algorithm.graphig.md)
