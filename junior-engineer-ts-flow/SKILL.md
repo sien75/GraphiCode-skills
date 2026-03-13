@@ -1,12 +1,12 @@
 ---
 name: graphicode-junior-engineer-ts-flow
-description: Invoked when user wants to implement specific flow modules in TypeScript in GraphiCode-managed projects. Writes code in TypeScript based on the flow README description.
+description: Invoked when user wants to implement specific flow modules in TypeScript in GraphiCode-managed projects. Writes code in TypeScript based on the flow D2 Sequence Diagram description.
 license: See LICENSE file.
 ---
 
 GraphiCode is a programming tool that combines flowcharts with large language model coding.
 
-You are TypeScript flow junior engineer of GraphiCode. Your responsibility is to write code in TypeScript based on the flow README description.
+You are TypeScript flow junior engineer of GraphiCode. Your responsibility is to write code in TypeScript based on the flow README description written in D2 sequence diagram format.
 
 # Background Knowledge: flow README's format
 
@@ -19,68 +19,69 @@ The user will provide one or more flow IDs along with their directories. You nee
 A flow module is a class that extends `Flow`. You need to:
 
 1. Import `Flow` from `"graphicode-utils"`
-2. Import all algorithm functions referenced in `# major`
-3. Import all state instances referenced in `# minor`
-4. In the constructor, call `this._composeMajorPipeline(...)` with the algorithm functions in order, then call `this._linkMinorRelation(...)` for each minor relationship
-5. Export a default instance
+2. Import all algorithm functions and state instances referenced in the D2 diagram.
+3. In the constructor, call `this._connect(...)` for each connection (`->`) defined in the sequence diagram.
+4. Export a default instance
 
-## _composeMajorPipeline
+## _connect
 
-Call `this._composeMajorPipeline(algoFun1, algoFun2, ...)` with all algorithm functions that appear in the major process, in topological order (from first to last in the pipeline).
+For each arrow (`->`) in the sequence diagram, call `this._connect`:
 
-If the major has branches (multiple lines sharing a node), call `_composeMajorPipeline` once for each line.
+`this._connect(sourceState, 'sourceMethod', targetState, 'targetMethod', 'targetParam', algo1, algo2, ...)`
 
-## _linkMinorRelation
-
-For each line in `# minor`, call `this._linkMinorRelation(type, stateInstance, stateMethod, algoFun, algoField)`:
-
-* **type**: `'$'` for subscribe, `'&'` for pull, `'@'` for push
-* **stateInstance**: the imported state instance
-* **stateMethod**: the method name on the state (e.g. `'event1'`, `'readData1'`, `'writeData1'`)
-* **algoFun**: the imported algorithm function
-* **algoField**: the field name on the algorithm side (e.g. `'data1'`)
-
-**Important: for all three types, the state parameters (stateInstance, stateMethod) always come before the algorithm parameters (algoFun, algoField).**
+* **sourceState**: the imported source state instance.
+* **sourceMethod**: the event, read, or write method name on the source state.
+* **targetState**: the imported target state instance.
+* **targetMethod**: the write method name on the target state.
+* **targetParam**: the specific parameter of the target method receiving the algorithm's output. Pass `undefined` if not targeting a specific parameter.
+* **algo1, algo2, ...**: the imported algorithm functions to process the data in order.
 
 ## Example
 
 Given this flow README:
 
-```md
-# major
-dir1/a -> dir1/b -> dir1/c
+```d2
+shape: sequence_diagram
 
-# minor
-$dir2/x.event1 -> dir1/a.data1
-&dir2/y.readData1 -> dir1/b.data2
-dir1/c.data3 -> @dir2/z.writeData1
-dir1/c.__null -> @dir2/z.writeData3
+UserPage: pages/UserPage
+Network: network/Network
+ExtraInfo: models/ExtraInfo
+
+UserPage.onUserClick -> Network.triggerReq.id: algorithms/transform()
+
+ExtraInfo.getToken -> Network.triggerReq.token: algorithms/identity() {
+  target-arrowhead: {
+    style.filled: false
+  }
+}
+
+Network.onRes -> UserPage.renderDOM: algorithms/extractData(), algorithms/transform2()
 ```
 
 The corresponding TypeScript code is:
 
 ```ts
 import { Flow } from "graphicode-utils";
-import a from "dir1/a";
-import b from "dir1/b";
-import c from "dir1/c";
-import x from "dir2/x";
-import y from "dir2/y";
-import z from "dir2/z";
+import UserPage from "../../pages/UserPage";
+import Network from "../../network/Network";
+import ExtraInfo from "../../models/ExtraInfo";
+
+import transform from "../../algorithms/transform";
+import identity from "../../algorithms/identity";
+import extractData from "../../algorithms/extractData";
+import transform2 from "../../algorithms/transform2";
 
 class ExampleFlow extends Flow {
   constructor() {
     super();
-    this._composeMajorPipeline(a, b, c);
-    this._composeMajorPipeline(b, d);
-    this._linkMinorRelation('$', x, 'event1', a, 'data1');
-    this._linkMinorRelation('&', y, 'readData1', b, 'data2');
-    this._linkMinorRelation('&', y, 'readData2', b, 'data3', [
-      { key: 'xxx' },
-      { key: 'yyy' },
-    ]);
-    this._linkMinorRelation('@', z, 'writeData1', c, 'data3');
-    this._linkMinorRelation('@', z, 'writeData3', c, '__null');
+
+    this._connect(UserPage, 'onUserClick', Network, 'triggerReq', 'id', transform);
+    
+    // Note: D2 arrow styles don't change the underlying logic, it's just a different trigger source (read vs event).
+    this._connect(ExtraInfo, 'getToken', Network, 'triggerReq', 'token', identity);
+
+    // Multiple algorithms chained together
+    this._connect(Network, 'onRes', UserPage, 'renderDOM', undefined, extractData, transform2);
   }
 }
 
@@ -88,21 +89,6 @@ const exampleFlow = new ExampleFlow();
 
 export default exampleFlow;
 ```
-
-Note that `<algorithmDir>` and `<stateDir>` should be replaced with the actual relative paths resolved from `graphig.md`'s `algorithmDirs` and `stateDirs`.
-
-In general, if a state method such as `writeData3` does not require any parameters and only needs to be called after the algorithm finishes execution, you can use `__null`. In this case, `writeData3` will be called but will not receive any arguments.
-
-If a pull method requires parameters, pass them as the optional 6th argument — an array of `{ key }` objects. Each entry resolves a parameter from the algorithm node's input fields at runtime, in order:
-
-```ts
-this._linkMinorRelation('&', y, 'readData2', b, 'data3', [
-  { key: 'xxx' },
-  { key: 'yyy' },
-]);
-```
-
-This corresponds to the flow file notation `&dir2/y.readData2 -> dir1/b.data3 (xxx, yyy)`.
 
 # Shell Command Usage
 

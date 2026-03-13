@@ -76,7 +76,7 @@ class UserNetworkState extends SubscriptionWithSetter implements Status {
     this._subscribe(id, 'loading', callback);
   }
 
-  public onUserInfoChange(id: string, callback: (data: UserInfoMap, prevData: UserInfoMap) => void) {
+  public onUserInfoChange(id: string, callback: (data: UserInfoMap) => void) {
     this._subscribe(id, 'cache', callback);
   }
 }

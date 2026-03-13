@@ -1,8 +1,8 @@
-type Callback = (...args: any[]) => void;
+import { Subject } from 'rxjs';
 
 class Subscription {
-  private _subscriptions: Map<string, Set<Callback>> = new Map();
-  private _enabledChangeCallbacks: Set<(enabled: boolean) => void> = new Set();
+  private _subjects: Map<string, Subject<any>> = new Map();
+  private _enabledSubject = new Subject<boolean>();
   private _enabled = false;
 
   public isEnabled(): boolean {
@@ -11,43 +11,31 @@ class Subscription {
 
   public enable(): void {
     this._enabled = true;
-    this._enabledChangeCallbacks.forEach(cb => cb(true));
+    this._enabledSubject.next(true);
   }
 
   public disable(): void {
     this._enabled = false;
-    this._enabledChangeCallbacks.forEach(cb => cb(false));
+    this._enabledSubject.next(false);
   }
 
-  public onEnabledChange(callback: (enabled: boolean) => void): void {
-    this._enabledChangeCallbacks.add(callback);
+  public onEnabledChange(): Subject<boolean> {
+    return this._enabledSubject;
   }
 
-  protected _subscribe(id: string, callback: Callback): () => void {
-    if (!this._subscriptions.has(id)) {
-      this._subscriptions.set(id, new Set());
+  protected _subscribe(id: string): Subject<any> {
+    if (!this._subjects.has(id)) {
+      this._subjects.set(id, new Subject<any>());
     }
-    this._subscriptions.get(id)!.add(callback);
-
-    // Return unsubscribe function
-    return () => {
-      const callbacks = this._subscriptions.get(id);
-      if (callbacks) {
-        callbacks.delete(callback);
-        if (callbacks.size === 0) {
-          this._subscriptions.delete(id);
-        }
-      }
-    };
+    
+    return this._subjects.get(id)!;
   }
 
-  protected _publish(id: string, ...args: any[]): void {
+  protected _publish(id: string, payload?: any): void {
     if (!this._enabled) return;
-    const callbacks = this._subscriptions.get(id);
-    if (callbacks) {
-      for (const callback of callbacks) {
-        callback(...args);
-      }
+    const subject = this._subjects.get(id);
+    if (subject) {
+      subject.next(payload);
     }
   }
 }

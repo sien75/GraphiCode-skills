@@ -5,7 +5,7 @@ export class SubscriptionWithSetter extends Subscription {
   public setData(data: any): void {
     const changedKeys = this.findChangedKeys(data);
     for (const key of changedKeys) {
-      this._publish(key, data[key], this[key]);
+      this._publish(key, data[key]);
     }
     for (const key of Object.keys(data)) {
       this[key] = data;

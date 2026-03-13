@@ -2,141 +2,124 @@
 
 ## what is flow
 
-`flow` is the **most important concept** in GraphiCode. It chains algorithm nodes together and specifies the dependencies between algorithm nodes and state nodes.
+`flow` is the **most important concept** in GraphiCode. It specifies the dependencies and data flow between state nodes, using algorithm nodes to transform and mediate the data. In the flow, **State nodes are the pillars (participants)** and **Algorithm nodes are the connections (messages)**.
 
-## major process
+## D2 Sequence Diagram Format
 
-**Each flow is a specially formatted markdown file, where the line following # major represents the main process, and each node in the main process is an algorithm node.**
+Flows are written using the [D2 Sequence Diagram](https://d2lang.com/) syntax. This allows us to visually represent the lifecycle of a process where states trigger events, algorithms process the data, and states are updated.
 
-For example, this is the simplest flow file, representing the sequential execution of algorithm nodes dir1/a, dir1/b, dir1/c, and dir1/d:
+A flow file must start with `shape: sequence_diagram`.
 
-```md
-# major
-dir1/a -> dir1/b -> dir1/c -> dir1/d
+### State Pillars (Participants)
+
+First, declare the state nodes involved in the flow. Each state node acts as a participant (pillar) in the sequence diagram. If you plan to use short names (which is recommended for readability), you must declare them at the top by mapping the short name to the full directory path: `ShortName: dir/LongName`.
+
+```d2
+shape: sequence_diagram
+
+UserPage: pages/UserPage
+Network: network/Network
+ExtraInfo: models/ExtraInfo
 ```
 
-## minor process
+### Flow Execution
 
-The main process cannot run by itself and requires minor processes.
+The sequence of operations is defined by arrows `->` connecting states. The label on the arrow represents the **Algorithm node(s)** that processes the data during this transition.
 
-**Lines following # minor is minor process, representing that a certain algorithm node in the main process has an effect from / to the state node.**
+The general syntax is:
+`SourceState.eventOrRead -> TargetState.write.param: dir/algorithm()`
 
-There are three types of relationships, indicated by a prefix symbol:
+* `SourceState.eventOrRead`: The state (using its short name) and its event/read method providing the input data.
+* `TargetState.write.param`: The state (using its short name), its write method, and the specific parameter receiving the output data.
+* `dir/algorithm()`: The algorithm node (with directory, lowercase start) responsible for transforming the data. You can chain multiple algorithms by separating them with commas (e.g. `dir/algo1(), dir/algo2()`), and they will be executed sequentially.
 
-* `$` represents a subscription.
-* `&` represents a pull.
-* `@` represents a push.
+#### Example 1: Event to Write
 
-### subscribe ($)
+When a user clicks a button, it triggers a network request:
 
-Algorithm node subscribes to a state event. When the event fires, the event data is received by the algorithm node's field and the algorithm starts executing:
+```d2
+UserPage.onUserClick -> Network.triggerReq.id: algorithms/transform()
+```
+- Source: `UserPage` state fires `onUserClick` event.
+- Target: `Network` state's `triggerReq` method's `id` parameter.
+- Algorithm: `algorithms/transform()` processes the click event data into the `id` format required by the network request.
 
-```md
-# minor
-$dir2/x.event1 -> dir1/a.data1
+#### Example 2: Read to Write (Pulling Extra Data)
+
+Sometimes, executing an algorithm requires pulling additional data from another state. You can draw another arrow pointing to the same target parameter or a different parameter of the same method:
+
+```d2
+ExtraInfo.getToken -> Network.triggerReq.token: algorithms/identity() {
+  target-arrowhead: {
+    style.filled: false
+  }
+}
+```
+- Source: `ExtraInfo` state's `getToken` read method.
+- Target: `Network` state's `triggerReq` method's `token` parameter.
+- Algorithm: `algorithms/identity()` just passes the token along.
+
+#### Example 3: Write to Write (Sequential Timing)
+
+Sometimes you need to express that one write operation should immediately follow another write operation, even though the first write produces no output. In this case, the algorithm is mainly responsible for triggering the next action or generating the required data independently.
+
+```d2
+Network.cancelReq -> UserPage.showError.msg: algorithms/clearState(), algorithms/generateErrorMsg()
+```
+- Source: `Network` state's `cancelReq` write method (completes execution).
+- Target: `UserPage` state's `showError` write method's `msg` parameter.
+- Algorithm: `algorithms/clearState()` runs first, then its output is passed to `algorithms/generateErrorMsg()` which generates an error message.
+
+### Allowed Connections
+
+In a GraphiCode flow, data transfer and sequencing can **only** occur in the following combinations:
+
+1. **`event -> write`**: An event fires and its payload is transformed and pushed into a write method. (Most common)
+2. **`read -> write`**: Data is pulled from a read method, transformed, and pushed into a write method. (Usually as an auxiliary pull accompanying an event)
+3. **`write -> write`**: A write operation completes, and its completion triggers a subsequent write operation. (Used strictly for sequential timing)
+
+**You cannot use combinations like `read -> read`, `event -> event`, or `write -> event`.**
+
+## Complete Example
+
+Putting it all together, a flow file looks like this:
+
+```d2
+shape: sequence_diagram
+
+UserPage: pages/UserPage
+Network: network/Network
+ExtraInfo: models/ExtraInfo
+
+UserPage.onUserClick
+
+UserPage.onUserClick -> Network.triggerReq.id: algorithms/transform()
+
+ExtraInfo.getToken -> Network.triggerReq.token: algorithms/identity() {
+  target-arrowhead: {
+    style.filled: false
+  }
+}
+
+Network.cancelReq -> UserPage.showError.msg: algorithms/clearState(), algorithms/generateErrorMsg()
 ```
 
-This means algorithm node dir1/a subscribes to the event1 event of state dir2/x, and the event data is received by dir1/a's `data1` field.
-
-### pull (&)
-
-Algorithm node calls a state read method to get data into one of its fields before execution:
-
-```md
-# minor
-&dir2/y.readData1 -> dir1/b.data2
-```
-
-This means node dir1/b calls readData1 from state dir2/y and stores the result in its `data2` field.
-
-If the read method requires parameters, they can be sourced from the algorithm node's input fields and listed in parentheses after the line:
-
-```md
-# minor
-&dir2/y.readData1 -> dir1/b.data2 (xxx, yyy)
-```
-
-This means `readData1` is called with two arguments: `xxx` and `yyy` from the algorithm node dir1/b's input.
-
-### push (@)
-
-Algorithm node calls a state write method to push data after execution:
-
-```md
-# minor
-dir1/c.data3 -> @dir2/z.writeData2
-```
-
-This means algorithm node dir1/c's `data3` output is passed to the writeData2 method of state dir2/z.
-
-If a state method does not require any parameters and only needs to be called after the algorithm finishes execution, use `__null` as the algorithm field. In this case, the state method will be called without any arguments:
-
-```md
-# minor
-dir1/c.__null -> @dir2/z.writeData2
-```
-
-## state built-in enable / disable
+## Built-in Methods
 
 Every state node has a set of built-in methods that are **not listed in its README**:
 
 | type | method | description |
 |------|--------|-------------|
-| write (push `@`) | `enabled` | activates the state |
-| write (push `@`) | `disabled` | deactivates the state |
-| read (pull `&`) | `isEnabled` | returns whether the state is currently enabled |
-| subscribe (`$`) | `onEnabledChange` | fires whenever the enabled/disabled status changes |
+| write | `enabled` | activates the state |
+| write | `disabled` | deactivates the state |
+| read | `isEnabled` | returns whether the state is currently enabled |
+| event | `onEnabledChange` | fires whenever the enabled/disabled status changes |
 
-**Not all states start enabled.** Only a subset of states are enabled at launch; the rest remain disabled until explicitly activated. During flow execution, an algorithm node can push to a state's `enabled` method to dynamically activate it:
+You can use these just like any other method in the sequence diagram.
 
-```md
-# minor
-dir1/a.__null -> @dir2/x.enabled
-```
+## Important Rules
 
-This is a common pattern when a flow needs to conditionally bring a state online at runtime.
-
-## one major process in one flow file
-
-**Important: Remember, a flow file can only contain one line of flow. If nodes cannot be connect, you should create a separate flow file.**
-
-For example, the following flow file is valid because both major flow lines contain node dir1/b, so they can be connected:
-
-```md
-# major
-dir1/a -> dir1/b -> dir1/c -> dir1/d
-```
-
-The following flow file is **WRONG** because there are 2 lines of flow:
-
-```md
-# major
-dir1/a -> dir1/b -> dir1/c
-dir1/d -> dir1/e
-```
-
-## state nodes cannot connect together
-
-The following flow file is **WRONG** because the two state nodes are connected together:
-
-```md
-# major
-dir1/a -> dir1/b
-# minor
-$dir2/x.event -> @dir2/y.writeData
-```
-
-## minor process can only describe one relationship per line
-
-The following flow file is **WRONG** because it describes two relationships between state and algorithm in one line:
-
-```md
-# major
-dir1/a -> dir1/b
-# minor
-$dir2/x.event -> dir1/a.data1 -> @dir2/y.writeData
-```
-
-## only write in grammars above
-
-**IMPORTANT: Do not write other formats into the flow file, GraphiCode only supports grammars above!**
+1. **State nodes are participants (pillars).**
+2. **Algorithm nodes are connections (labels on arrows).** You must not define an algorithm as a participant/pillar.
+3. Every data transfer must explicitly name the source state's method and the target state's method.
+4. Only valid D2 sequence diagram syntax is allowed.

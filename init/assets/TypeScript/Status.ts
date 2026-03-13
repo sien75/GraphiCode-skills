@@ -1,5 +1,7 @@
+import { Subject } from 'rxjs';
+
 interface Status {
-  onEnabledChange(callback: (enabled: boolean) => void): void;
+  onEnabledChange(): Subject<boolean>;
   isEnabled(): boolean;
   enable(): void;
   disable(): void;

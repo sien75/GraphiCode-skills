@@ -46,7 +46,7 @@ class CountPageState extends SubscriptionWithSetter implements Status {
     return this.count;
   }
   
-  public onCountChange(callback: (count: number, prevCount: number) => void): void {
+  public onCountChange(callback: (count: number) => void): void {
     this._subscribe('count', callback);
   }
 }
