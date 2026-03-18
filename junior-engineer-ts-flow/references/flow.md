@@ -1,169 +1,150 @@
 # flow
 
-## what is flow
+## What is flow
 
-`flow` is the **most important concept** in GraphiCode. It specifies the dependencies and data flow between state nodes, using algorithm nodes to transform and mediate the data. In the flow, **State nodes are the pillars (participants)** and **Algorithm nodes are the connections (messages)**.
+`flow` is the core concept in GraphiCode. It describes how data flows from state events, through algorithms, into parameters of state methods. When all parameters are collected, the method executes automatically.
 
 ## D2 Sequence Diagram Format
 
-Flows are written using the [D2 Sequence Diagram](https://d2lang.com/) syntax. This allows us to visually represent the lifecycle of a process where states trigger events, algorithms process the data, and states are updated.
+Use [D2 Sequence Diagram](https://d2lang.com/) syntax.
 
-A flow file must start with `shape: sequence_diagram`.
+### Participants (States)
 
-### State Pillars (Participants)
-
-First, declare the state nodes involved in the flow. Each state node acts as a participant (pillar) in the sequence diagram. If you plan to use short names (which is recommended for readability), you must declare them at the top by mapping the short name to the full directory path: `ShortName: dir/LongName`.
+Declare all state nodes at the top:
 
 ```d2
 shape: sequence_diagram
 
 UserPage: pages/UserPage
-Network: network/Network
-ExtraInfo: models/ExtraInfo
+Auth: services/Auth
 ```
 
-### Flow Execution
+Mapping: `ShortName: dir/LongName`
 
-The sequence of operations is defined by arrows `->` connecting states. The label on the arrow represents the **Algorithm node(s)** that processes the data during this transition.
+### Connection Rule
 
-The general syntax is:
-`SourceState.eventOrMethod -> TargetState.method.param: algorithm()`
+Format:
 
-* `SourceState.eventOrMethod`: The state (using its short name) and its event/method providing the input data. **The source MUST be initiated by `State.event` or `State.method`.**
-* `TargetState.method.param`: The state (using its short name), its method, and the specific parameter receiving the output data. **The receiver MUST be initiated by `State.method.paramName` or just `State.method` (when not assigning to a specific parameter, e.g. for triggering).**
-* `algorithm()`: The algorithm node responsible for transforming the data. You can chain multiple algorithms by separating them with commas (e.g. `algo1(), algo2()`), and they will be executed sequentially.
-
-#### Connection Numbering
-
-**Every connection must be annotated with a number using a comment (e.g., `# 0`).** This is critical for referencing connection results later in the flow.
-
-#### Context Algorithm
-
-If a connection requires data sources other than the current `source`, you can use the `_context()` algorithm. It returns an object `{ context, payload }`:
-* `context`: Contains all context information, keyed by the sequence number of the connection that produced the source's output result.
-* `payload`: The result passed from the previous operator (if any).
-
-Example:
 ```d2
-# 1
-Network.triggerReq -> ExtraInfo.getToken.pageName: _context(), getPageName()
+SourceState.event -> TargetState.method.param: algo1(), algo2()
 ```
 
-#### Function Execution Rule
+**Components**:
 
-A function is truly executed ONLY when ALL its input parameters are gathered. Once all parameters are gathered, it will definitely execute.
+- `SourceState.event`: An event that triggers the flow.
+- `TargetState.method.param`: A method and one of its parameters.
+- `algo1(), algo2()`: Optional algorithm chain. Each receives `{ context, payload }` and returns transformed value.
 
-#### Synchronous Calls
+### Numbering and Linking
 
-A synchronous call happens between two methods (`method -> method`). For example, when `a.method1` needs data from `b.method2`.
-`a.method1` calls `b.method2` and waits for its result. The return value of `b.method2` is then passed back as a parameter to `a.method1` (e.g., `b.method2 -> a.method1.param1`). Only when `a.method1` receives all required parameters will it truly execute.
+Every connection needs a number: `# 0`, `# 1`, ...
 
-**Synchronous calls can be nested.** This means `a.method1` can call `b.method2`, and before `b.method2` returns, it can call `c.method3`. The sequence of arrows would look like: `a.method1 -> b.method2`, then `b.method2 -> c.method3`, followed by the return `c.method3 -> b.method2.paramX`, and finally the return `b.method2 -> a.method1.paramY`.
+Use `link` to bind downstream consumers to a specific invocation:
 
-**Style in D2:**
-- The call uses the default arrow.
-- The return (call receipt) uses `shape: arrow` in `target-arrowhead`.
+- `# 0 linked` – initiating connection; creates flow context ID 0
+- `# 1 link to 0` – responds only to events from #0's execution
 
-```d2
-# 0
-UserPage.renderDOM -> ExtraInfo.getToken: prepare()
+`link` is needed when a method's completion event (e.g., `readSuccess`) could come from multiple independent calls. It prevents cross-flow interference.
 
-# 1
-ExtraInfo.getToken -> Storage.getLocalToken: identity()
-
-# 2
-Storage.getLocalToken -> ExtraInfo.getToken.localToken: identity() {
-  target-arrowhead: {
-    shape: arrow
-  }
-}
-
-# 3
-ExtraInfo.getToken -> UserPage.renderDOM.token: extract() {
-  target-arrowhead: {
-    shape: arrow
-  }
-}
-```
-
-#### Asynchronous Calls
-
-An asynchronous call usually happens from an event to a method (`event -> method`).
-For example, `a.event1 -> b.method2`. After `a` triggers the event, it has no further concern with `b` and does not care about its execution status.
-
-**Style in D2:**
-- Asynchronous calls use a hollow arrow (`style.filled: false`) in `target-arrowhead`.
+Arrow style must be hollow at "link" scene. Add:
 
 ```d2
-# 0
-UserPage.onUserClick -> Network.triggerReq.id: transform() {
+{
   target-arrowhead: {
     style.filled: false
   }
 }
 ```
 
-### Allowed Connections
+### Parameter Collection
 
-In a GraphiCode flow, data transfer and sequencing can **only** occur in the following combinations:
+A method may have multiple parameters, each from a different connection. The flow tracks completion:
 
-1. **`event -> method`**: An event fires and its payload is pushed into a method. (Asynchronous call)
-2. **`method -> method`**: A method calls another method to get data or sequence execution. (Synchronous call)
+- Each connection's result is stored by its serial number.
+- When all parameters have values, the method executes automatically.
 
-**You cannot use combinations like `method -> event` or `event -> event`.**
+Use `_context()` to access prior results. It returns `{ context: Record<number, any>, payload: any }`.
 
-## Complete Example
-
-Putting it all together, a flow file looks like this:
+### Example 1: Login
 
 ```d2
 shape: sequence_diagram
 
 UserPage: pages/UserPage
-Network: network/Network
-ExtraInfo: models/ExtraInfo
+Auth: services/Auth
+Store: stores/TokenStore
+Dashboard: pages/Dashboard
 
 # 0
-UserPage.onUserClick -> Network.triggerReq.id: transform() {
+UserPage.submit -> Auth.login.username: getUsername()
+
+# 1
+UserPage.submit -> Auth.login.password: getPassword()
+
+# 2
+Auth.loginSuccess -> Store.save.token: extractToken()
+
+# 3
+Auth.loginSuccess -> Dashboard.render.user: extractUser()
+```
+
+- `#0` and `#1` both originate from `UserPage.submit`. They fill `Auth.login`'s `username` and `password`.
+- When both parameters are ready, `Auth.login` executes.
+- After execution, `Auth.loginSuccess` event is triggered.
+- `#2` and `#3` consume that event, passing data to `Store.save.token` and `Dashboard.render.user`.
+
+All four connections belong to one flow.
+
+### Example 2: Read with link
+
+```d2
+shape: sequence_diagram
+
+UserPage: pages/UserPage
+ConfigStore: stores/ConfigStore
+
+# 0 linked
+UserPage.init -> ConfigStore.read.key: getConfigKey() {
   target-arrowhead: {
     style.filled: false
   }
 }
 
-# 1
-Network.triggerReq -> ExtraInfo.getToken.pageName: _context(), getPageName()
-
-# 2
-ExtraInfo.getToken -> Network.triggerReq.token: identity() {
+# 1 link to 0
+ConfigStore.readSuccess -> UserPage.render.config: getConfigValue() {
   target-arrowhead: {
-    shape: arrow
+    style.filled: false
   }
 }
 
-# 3
-Network.onRes -> UserPage.renderDOM.userInfo: transform2() {
+# 2 link to 0
+ConfigStore.readError -> UserPage.showInitError.error: getErrorMessage() {
   target-arrowhead: {
     style.filled: false
   }
 }
 ```
+
+- `#0` initiates `ConfigStore.read`. It is `linked`, creating flow context 0.
+- `ConfigStore.read` executes. On completion, it triggers either `readSuccess` or `readError`.
+- `#1` and `#2` are `link to 0`. They only respond to events from the specific `read` call initiated by `#0`.
+- This scoping ensures that if another flow also calls `ConfigStore.read`, its events won't be caught by `#1` and `#2`.
+
+### Important Rules
+
+1. Only `event -> method` connections are allowed.
+2. Sequence numbers must be unique and consecutive.
+3. Use `link` only when you need to scope event consumers to a specific invocation. Otherwise omit it.
+4. Connections without explicit `link` that share an event source belong to the same flow.
 
 ## Built-in Methods
 
-Every state node has a set of built-in methods/events that are **not listed in its README**:
+Every state has these (not in README):
 
 | type | name | description |
-|------|--------|-------------|
-| method | `enabled` | activates the state |
-| method | `disabled` | deactivates the state |
-| method | `isEnabled` | returns whether the state is currently enabled |
-| event | `onEnabledChange` | fires whenever the enabled/disabled status changes |
-
-You can use these just like any other method in the sequence diagram.
-
-## Important Rules
-
-1. **State nodes are participants (pillars).**
-2. **Algorithm nodes are connections (labels on arrows).** You must not define an algorithm as a participant/pillar.
-3. Every data transfer must explicitly name the source state's method and the target state's method.
-4. Only valid D2 sequence diagram syntax is allowed.
+|------|------|-------------|
+| method | `enabled` | activate state |
+| method | `disabled` | deactivate state |
+| method | `readEnabled` | get enabled status (boolean) |
+| event | `enabledChange` | enabled flag changed (payload: boolean) |
+| event | `enabledValueRead` | after `readEnabled` call |
