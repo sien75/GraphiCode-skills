@@ -63,26 +63,12 @@ this._connect(1, UserPage, 'submit', Auth, 'login', 'password', [getPassword, va
 - A single method can appear in multiple connections with different `targetParam` values; all those connections collectively provide the method's parameters
 - When all parameters are supplied, the method executes automatically
 
-## `_concat`
+## `_linked` & `_link`
 
-Activate all connections in a flow by grouping them:
+When a flow uses `link` or `_linked` to scope event consumers, use `_link` or `_lined` to bind those connections to their parent invocation:
 
-```ts
-this._concat([conn0, conn1, conn2]);
-```
-
-## `_link`
-
-When a flow uses `link` to scope event consumers, use `_link` to bind those connections to their parent invocation:
-
-```ts
-this._link(connections, parentSerialNumber);
-```
-
-- `connections`: array of connection objects that have `link to N`
-- `parentSerialNumber`: the serial number they link to (the `N` in `link to N`)
-
-`_link` ensures these connections only receive events from the specific flow context initiated by the parent connection.
+- If you encounter `# N linked`, it means connection `#N` is the parent. Call `this._linked(N)._connect(...)` to create child connections under it.
+- If you encounter `# X link to N`, it means connection `#X` links to parent `#N`. Call `this._link(N)._connect(...)` to bind this connection to the parent.
 
 ## Example
 
@@ -122,8 +108,6 @@ class LoginFlow extends Flow {
     const c0 = this._connect(0, UserPage, 'submit', Auth, 'login', 'username', [getUsername]);
     const c1 = this._connect(1, UserPage, 'submit', Auth, 'login', 'password', [getPassword]);
     const c2 = this._connect(2, Auth, 'loginSuccess', UserPage, 'render', 'token', [extractToken]);
-
-    this._concat([c0, c1, c2]);
   }
 }
 

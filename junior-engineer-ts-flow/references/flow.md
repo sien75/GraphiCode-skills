@@ -63,8 +63,6 @@ A method may have multiple parameters, each from a different connection. The flo
 - Each connection's result is stored by its serial number.
 - When all parameters have values, the method executes automatically.
 
-Use `_context()` to access prior results. It returns `{ context: Record<number, any>, payload: any }`.
-
 ### Example 1: Login
 
 ```d2
