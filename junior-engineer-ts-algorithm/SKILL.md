@@ -16,33 +16,40 @@ About algorithm README's format, see: `./references/algorithm.md`.
 
 The user will provide one or more algorithm IDs along with their directories. You need to locate the README file based on the algorithm ID and its directory, then write code according to the README file.
 
-Specifically, you need to write a function with the following parameter and return value specifications:
+Specifically, you need to write a function based on the README's signature and description.
 
-1. The function accepts an object as a parameter, whose fields correspond one-to-one with the parameters listed in the input section of the readme file
-2. Each line in the readme's input section follows the format `paramName: TypeID`, specifying both the field name and its type
-3. The function returns an object, whose fields correspond one-to-one with the return values listed in the output section of the README file
-4. Each line in the readme's output section follows the format `paramName: TypeID`, specifying both the field name and its type
+## README Format
 
-When writing code, use the field names specified in the README, and import the relevant type declarations from type directory.
+The README uses a function signature format:
 
-The readme's description describes the function logic. You need to implement the code logic according to this description, transforming the input parameters into output return values.
+```
+(inputParams...) -> outputType
+```
 
-For example, the following readme corresponds to this code:
+The first line is the **signature**: input parameters and output type. Each parameter follows `paramName: dir/TypeID`. The `# description` section describes the transformation logic.
+
+## Runtime Parameter Format (Critical)
+
+In the flow system, algorithm functions are chained in an rxjs pipe. Each algorithm receives a **single** `{ context, payload }` object:
+
+- `context`: `Map<number, any[]>` — the Flow's shared context, containing records of all connection executions
+- `payload`: the data from the upstream event or previous algorithm's output
+
+The function returns the transformed value, which becomes the `payload` for the next algorithm in the chain (or the final value passed to the target state method).
+
+## Example
+
+The following README:
 
 ```md
-# input
-a: dir1/TypeA
-b: dir1/TypeB
-c: dir2/TypeC
-d: dir2/TypeD
-
-# output
-e: dir2/TypeE
-f: dir2/TypeF
+# io
+(a: dir1/TypeA, b: dir1/TypeB, c: dir2/TypeC, d: dir2/TypeD) -> {e: dir2/TypeE, f: dir2/TypeF}
 
 # description
-combine a and b to e and f.
+Combine a and b to e and f.
 ```
+
+Corresponds to:
 
 ```ts
 import TypeA from 'dir1/TypeA';
@@ -52,7 +59,7 @@ import TypeD from 'dir2/TypeD';
 import TypeE from 'dir2/TypeE';
 import TypeF from 'dir2/TypeF';
 
-type Input = {
+type Payload = {
   a: TypeA;
   b: TypeB;
   c: TypeC;
@@ -64,9 +71,10 @@ type Output = {
   f: TypeF;
 };
 
-function xxx(input: Input): Output {
+function xxx({ context, payload }: { context: Map<number, any[]>; payload: Payload }): Output {
+  const { a, b, c, d } = payload;
   // here write code according to description in readme
-  return output;
+  return { e, f };
 }
 
 export default xxx;

@@ -16,95 +16,103 @@ About state README's format, see: `./references/state.md`.
 
 The user provides one or a list of state readme IDs. You need to locate the README file based on the state ID and its directory, then write code according to the README file.
 
-Specifically, you need to implement a `class`. In the class, define each read, write, and event function, where:
+Specifically, you need to implement a `class` that extends `Subscription` and implements `Status`. State nodes have 2 types of external interaction:
 
-1. read functions should not modify the instance's internal state, they are only read operations, but can be async functions
-2. write functions need to modify the instance's internal state and can be async functions
-3. event functions can accept a callback function, which will be maintained internally and actually executed when the event is triggered
+1. **`method`**: Corresponds directly to class methods. They can read or modify internal state, and can be async.
+2. **`event`**: Represents an event name. Handled by a single `on(eventName)` method that returns an Observable from `_subscribe`.
 
 Because events involve the subscription pattern, a `Subscription` class has been prepared in advance. By inheriting it, you can obtain its `_subscribe` and `_publish` methods.
 
 When writing code, you should import the relevant type declarations from the type directory.
 
-For example, the following readme corresponds to this code:
+## Method Parameter Format (Critical)
+
+Every method **must** accept parameters in `({key, value}, {key, value}, ...)` format — each parameter is a `{ key: string; value: any }` object.
+
+The **first** parameter is always `{ key: '__tag', value: string }`:
+- If `value` is a non-empty string, it is a scoping tag from a `linked` flow connection. The method **must** use this tag to suffix its published events (e.g., `this._publish(\`eventName-${tag}\`, data)`).
+- If `value` is `''` (empty string), no scoping — publish events normally.
+
+**Why key-value format?** Because the Flow system uses curried parameter collection, and parameters may arrive in **any order** depending on which events fire first. The `key` field lets the method identify each parameter regardless of arrival order.
+
+## Example
+
+The following README:
 
 ```md
-# read
-readData1: (x: TypeX) -> TypeA
-readData2: () -> {b: TypeB, c: TypeC}
-
-# write
-writeData1: (d: TypeD) -> void
-writeData2: (e: TypeE, f: TypeF, g: TypeG) -> void
+# method
+login: (username: TypeUsername, password: TypePassword) -> void
 
 # event
-onEvent1: (cb: (h: TypeH) -> void) -> void
-onEvent2: (cb: (i: TypeI) -> void) -> void
+loginSuccess: (cb: (token: TypeToken) -> void) -> void
+loginError: (cb: (err: TypeErr) -> void) -> void
 
 # resides-in
 memory
 
 # description
-This state is a memory state, which means...
+This state handles user authentication.
 ```
+
+Corresponds to:
 
 ```ts
 import { Subscription, Status } from 'graphicode-utils';
 
-import TypeX from '../../types/TypeX';
-import TypeA from '../../types/TypeA';
-import TypeB from '../../types/TypeB';
-import TypeC from '../../types/TypeC';
-import TypeD from '../../types/TypeD';
-import TypeE from '../../types/TypeE';
-import TypeF from '../../types/TypeF';
-import TypeG from '../../types/TypeG';
-import TypeH from '../../types/TypeH';
-import TypeI from '../../types/TypeI';
+import TypeUsername from '../../types/TypeUsername';
+import TypePassword from '../../types/TypePassword';
+import TypeToken from '../../types/TypeToken';
+import TypeErr from '../../types/TypeErr';
 
-class XXX extends Subscription implements Status {
-  private someState: xxx;
-
+class Auth extends Subscription implements Status {
   public override enable() {
-    // write init code here if have, do not write in constructor
     super.enable();
   }
   public override disable() {
-    // write unmount code here if have
     super.disable();
   }
 
-  public readData1(params: { x: TypeX }): { a: TypeA } {
-    return { a };
-  }
-  public readData2(): { b: TypeB; c: TypeC } {
-    return { b, c };
+  public login(
+    tag: { key: string; value: string },
+    username: { key: string; value: TypeUsername },
+    password: { key: string; value: TypePassword }
+  ) {
+    const tagValue = tag.value;
+    const suffix = tagValue ? `-${tagValue}` : '';
+
+    // params may arrive in any order, identify by key
+    let u: TypeUsername, p: TypePassword;
+    for (const param of [username, password]) {
+      if (param.key === 'username') u = param.value;
+      if (param.key === 'password') p = param.value;
+    }
+
+    try {
+      const token = this.doLogin(u!, p!);
+      this._publish(`loginSuccess${suffix}`, token);
+    } catch (e) {
+      this._publish(`loginError${suffix}`, e);
+    }
   }
 
-  public writeData1(data: { d: TypeD }) {
-    // xxx
-  }
-  public writeData2(data: { e: TypeE; f: TypeF; g: TypeG }) {
-    // xxx
+  public on(eventName: string) {
+    return this._subscribe(eventName);
   }
 
-  public onEvent1(callback: (data: { h: TypeH }) => void) {
-    this._subscribe(id, 'onEvent1', callback);
-  }
-  public onEvent2(callback: (data: { i: TypeI }) => void) {
-    this._subscribe(id, 'onEvent2', callback);
-  }
-  
-  private someMethod() {
-    this.someState.xxx = xxx;
-    this._publish('onEvent1', { h });
+  private doLogin(username: TypeUsername, password: TypePassword): TypeToken {
+    // actual login logic
   }
 }
 
-const xxx = new XXX();
+const auth = new Auth();
 
-export default xxx;
+export default auth;
 ```
+
+**Key points in the example**:
+- `login` receives `__tag` as the first param, then `username` and `password` — but `username` and `password` may arrive in either order, so the method uses `param.key` to identify them.
+- Events are published with the tag suffix when `tagValue` is non-empty.
+- `on(eventName)` returns an Observable via `_subscribe` for the Flow system to listen to.
 
 # Bun Runtime Environment
 
