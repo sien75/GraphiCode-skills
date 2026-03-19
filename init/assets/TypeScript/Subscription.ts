@@ -31,9 +31,10 @@ class Subscription {
     return this._subjects.get(id)!;
   }
 
-  protected _publish(id: string, payload?: any): void {
+  protected _publish(id: string, payload?: any, tag?: string): void {
     if (!this._enabled) return;
-    const subject = this._subjects.get(id);
+    const eventName = tag ? `${id}-${tag}` : id;
+    const subject = this._subjects.get(eventName);
     if (subject) {
       subject.next(payload);
     }

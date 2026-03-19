@@ -77,9 +77,6 @@ class Auth extends Subscription implements Status {
     username: { key: string; value: TypeUsername },
     password: { key: string; value: TypePassword }
   ) {
-    const tagValue = tag.value;
-    const suffix = tagValue ? `-${tagValue}` : '';
-
     // params may arrive in any order, identify by key
     let u: TypeUsername, p: TypePassword;
     for (const param of [username, password]) {
@@ -89,9 +86,9 @@ class Auth extends Subscription implements Status {
 
     try {
       const token = this.doLogin(u!, p!);
-      this._publish(`loginSuccess${suffix}`, token);
+      this._publish('loginSuccess', token, tag.value);
     } catch (e) {
-      this._publish(`loginError${suffix}`, e);
+      this._publish('loginError', e, tag.value);
     }
   }
 
@@ -111,7 +108,7 @@ export default auth;
 
 **Key points in the example**:
 - `login` receives `__tag` as the first param, then `username` and `password` — but `username` and `password` may arrive in either order, so the method uses `param.key` to identify them.
-- Events are published with the tag suffix when `tagValue` is non-empty.
+- Events are published via `_publish(eventName, payload, tag.value)` — the `_publish` method auto-appends `-${tag}` suffix when tag is non-empty.
 - `on(eventName)` returns an Observable via `_subscribe` for the Flow system to listen to.
 
 # Bun Runtime Environment

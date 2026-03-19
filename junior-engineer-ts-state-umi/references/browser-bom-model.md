@@ -1,109 +1,118 @@
-# Browser BOM State Management
+# Browser BOM State
 
-Native browser BOM interfaces include window / screen / navigator, etc., which are encapsulated to provide system-level event listening and state reading. Below is an example of converting a State README into TypeScript code:
+Native browser BOM interfaces include window / screen / navigator, etc., which are encapsulated to provide system-level event listening and state reading.
 
-# read
-queryWindowSize: () -> WindowSize
-queryOnlineStatus: () -> boolean
-
-# write
+```md
+# method
+queryWindowSize: () -> void
+queryOnlineStatus: () -> void
 scrollTo: (options: ScrollOptions) -> void
 alert: (msg: string) -> void
 
 # event
-onResize: (cb: (size: WindowSize) -> void) -> void
-onOnlineStatusChange: (cb: (status: boolean) -> void) -> void
+size: (cb: (size: WindowSize) -> void) -> void
+isOnline: (cb: (status: boolean) -> void) -> void
+queryWindowSizeSuccess: (cb: (size: WindowSize) -> void) -> void
+queryOnlineStatusSuccess: (cb: (status: boolean) -> void) -> void
 
 # resides-in
 browser-BOM
 
 # description
 This state encapsulates common browser BOM operations and events:
-1. **State Maintenance**: Real-time monitoring of window size changes and network connection status (Online/Offline).
-2. **Read Operations (read)**:
-    - `queryWindowSize`: Get the width and height of the current window.
-    - `queryOnlineStatus`: Get whether the current browser is online.
-3. **Write Operations (write)**:
+1. **State Maintenance**: Real-time monitoring of window size changes and network connection status.
+2. **Methods**:
+    - `queryWindowSize`: Publish the current window dimensions via `queryWindowSizeSuccess` event.
+    - `queryOnlineStatus`: Publish whether the browser is online via `queryOnlineStatusSuccess` event.
     - `scrollTo`: Control page scrolling.
     - `alert`: Trigger a native alert.
-4. **Events (event)**:
-    - `onResize`: Notify Flow when the window size changes.
-    - `onOnlineStatusChange`: Notify Flow when the network status changes.
+3. **Events**:
+    - `size`: Notify Flow when the window size changes.
+    - `isOnline`: Notify Flow when the network status changes.
+```
 
 ```ts
-import { useState, useEffect } from 'react';
-import { reactToState, SubscriptionWithSetter, Status } from './state';
+import { Subscription, Status } from 'graphicode-utils';
 
-/**
- * Custom Hook: Manages BOM events and state
- */
-export function useBrowserBOM(id: string) {
-  const [size, setSize] = useState<WindowSize>({ width: window.innerWidth, height: window.innerHeight });
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+class BOMState extends Subscription implements Status {
+  private size: { width: number; height: number } = { width: 0, height: 0 };
+  private online: boolean = true;
 
-  useEffect(() => {
-    const handleResize = () => {
-      const newSize = { width: window.innerWidth, height: window.innerHeight };
-      setSize(newSize);
+  private resizeHandler: (() => void) | null = null;
+  private onlineHandler: (() => void) | null = null;
+  private offlineHandler: (() => void) | null = null;
+
+  public override enable() {
+    this.size = { width: window.innerWidth, height: window.innerHeight };
+    this.online = navigator.onLine;
+
+    this.resizeHandler = () => {
+      this.size = { width: window.innerWidth, height: window.innerHeight };
+      this._publish('size', this.size);
     };
-    const handleStatus = () => {
-      const status = navigator.onLine;
-      setIsOnline(status);
+    this.onlineHandler = () => {
+      this.online = true;
+      this._publish('isOnline', true);
+    };
+    this.offlineHandler = () => {
+      this.online = false;
+      this._publish('isOnline', false);
     };
 
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('online', handleStatus);
-    window.addEventListener('offline', handleStatus);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('online', handleStatus);
-      window.removeEventListener('offline', handleStatus);
-    };
-  }, []);
-
-  // Bridge synchronization
-  reactToState.useCapture(id,
-    { size, isOnline },
-    { 
-      scrollTo: (options: any) => window.scrollTo(options),
-      alert: (msg: string) => window.alert(msg)
-    }
-  );
-
-  return { size, isOnline };
-}
-
-/**
- * State Class
- */
-class BOMState extends SubscriptionWithSetter implements Status {
-  private size: WindowSize;
-  private isOnline: boolean;
-
-  public scrollTo: (opt: any) => void;
-  public alert: (msg: string) => void;
-
-  public queryWindowSize() { return this.size; }
-  public queryOnlineStatus() { return this.isOnline; }
-
-  public onResize(id: string, callback: (s: WindowSize) => void) {
-    this._subscribe(id, 'size', callback);
+    window.addEventListener('resize', this.resizeHandler);
+    window.addEventListener('online', this.onlineHandler);
+    window.addEventListener('offline', this.offlineHandler);
+    super.enable();
   }
 
-  public onOnlineStatusChange(id: string, callback: (o: boolean) => void) {
-    this._subscribe(id, 'isOnline', callback);
+  public override disable() {
+    if (this.resizeHandler) window.removeEventListener('resize', this.resizeHandler);
+    if (this.onlineHandler) window.removeEventListener('online', this.onlineHandler);
+    if (this.offlineHandler) window.removeEventListener('offline', this.offlineHandler);
+    this.resizeHandler = null;
+    this.onlineHandler = null;
+    this.offlineHandler = null;
+    super.disable();
+  }
+
+  public queryWindowSize(
+    tag: { key: string; value: string }
+  ) {
+    this._publish('queryWindowSizeSuccess', this.size, tag.value);
+  }
+
+  public queryOnlineStatus(
+    tag: { key: string; value: string }
+  ) {
+    this._publish('queryOnlineStatusSuccess', this.online, tag.value);
+  }
+
+  public scrollTo(
+    tag: { key: string; value: string },
+    options: { key: string; value: any }
+  ) {
+    window.scrollTo(options.value);
+  }
+
+  public alert(
+    tag: { key: string; value: string },
+    msg: { key: string; value: string }
+  ) {
+    window.alert(msg.value);
+  }
+
+  public on(eventName: string) {
+    return this._subscribe(eventName);
   }
 }
 
 const bomState = new BOMState();
-reactToState.setState('BOMModel', bomState);
-export { bomState };
+export default bomState;
 ```
 
 Note 1:
 
-Only within State corresponding to React functional components and hooks, **the callback of `this._subscribe` can receive two parameters**, namely the current value and the previous value.
+Use `enable()` to initialize state and set up event listeners, `disable()` to tear them down. No React hooks — all browser APIs are used directly.
 
 Note 2:
 

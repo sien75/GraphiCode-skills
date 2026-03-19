@@ -1,104 +1,105 @@
-# Local Storage State Management
+# Local Storage State
 
-Encapsulates browser `localStorage` / `sessionStorage` / `indexedDB` interfaces to provide reading, writing, and monitoring of persistent data changes. Below is an example of converting a State README into TypeScript code:
+Encapsulates browser `localStorage` / `sessionStorage` / `indexedDB` interfaces to provide reading, writing, and monitoring of persistent data changes.
 
-# read
-queryItem: (key: StorageKey) -> any
-queryAllKeys: () -> StorageKeys
-
-# write
+```md
+# method
+queryItem: (key: StorageKey) -> void
+queryAllKeys: () -> void
 setItem: (entry: StorageEntry) -> void
 removeItem: (key: StorageKey) -> void
 clear: () -> void
 
 # event
-onStorageChange: (cb: (data: any) -> void) -> void
+storageChange: (cb: (data: any) -> void) -> void
+queryItemSuccess: (cb: (value: any) -> void) -> void
+queryAllKeysSuccess: (cb: (keys: StorageKeys) -> void) -> void
 
 # resides-in
 browser-storage
 
 # description
 This state encapsulates the persistence logic of local storage:
-1. **State Maintenance**: Synchronize the data snapshot in storage through `useState` to enable responsive read operations.
-2. **Read Operations (read)**:
-    - `queryItem`: Get the deserialized value from local storage according to the key name.
-    - `queryAllKeys`: Return a list of all current key names in storage.
-3. **Write Operations (write)**:
-    - `setItem`: Serialize data and store it locally, while synchronously updating the local state.
+1. **State Maintenance**: Listens to cross-tab `storage` events.
+2. **Methods**:
+    - `queryItem`: Get the deserialized value from local storage and publish via `queryItemSuccess` event.
+    - `queryAllKeys`: Publish a list of all current key names via `queryAllKeysSuccess` event.
+    - `setItem`: Serialize data and store it locally.
     - `removeItem`: Delete a specified key-value pair.
     - `clear`: Clear all storage items.
-4. **Events (event)**:
-    - `onStorageChange`: Listen to `storage` events (usually triggered when other same-origin tabs modify the storage) to notify Flow to respond to data changes.
+3. **Events**:
+    - `storageChange`: Triggered when other same-origin tabs modify the storage.
+```
 
 ```ts
-import { useState, useEffect, useCallback } from 'react';
-import { reactToState, SubscriptionWithSetter, Status } from './state';
+import { Subscription, Status } from 'graphicode-utils';
 
-/**
- * Custom Hook: Manages localStorage interaction
- */
-export function useLocalStorage(id: string) {
-  const [snapshot, setSnapshot] = useState<Record<string, any>>({});
+class StorageState extends Subscription implements Status {
+  private handler: ((e: StorageEvent) => void) | null = null;
 
-  // Write operation mapping: set data
-  const setItem = useCallback(({ key, value }: any) => {
-    localStorage.setItem(key, JSON.stringify(value));
-    setSnapshot(prev => ({ ...prev, [key]: value }));
-  }, []);
-
-  // Listen for cross-tab changes
-  useEffect(() => {
-    const handler = (e: StorageEvent) => {
+  public override enable() {
+    this.handler = (e: StorageEvent) => {
       if (e.key) {
         const newValue = e.newValue ? JSON.parse(e.newValue) : null;
-        setSnapshot(prev => ({ ...prev, [e.key!]: newValue }));
+        this._publish('storageChange', { key: e.key, value: newValue });
       }
     };
-    window.addEventListener('storage', handler);
-    return () => window.removeEventListener('storage', handler);
-  }, []);
+    window.addEventListener('storage', this.handler);
+    super.enable();
+  }
 
-  // Bridge synchronization
-  reactToState.useCapture(id,
-    { snapshot },
-    { 
-      setItem, 
-      removeItem: (key: string) => localStorage.removeItem(key),
-      clear: () => localStorage.clear() 
+  public override disable() {
+    if (this.handler) {
+      window.removeEventListener('storage', this.handler);
+      this.handler = null;
     }
-  );
-
-  return { snapshot, setItem };
-}
-
-/**
- * State Class
- */
-class StorageState extends SubscriptionWithSetter implements Status {
-  private snapshot: Record<string, any> = {};
-
-  public setItem: (p: any) => void;
-  public removeItem: (k: string) => void;
-  public clear: () => void;
-
-  public queryItem(params: { key: string }) {
-    return this.snapshot[params.key] || JSON.parse(localStorage.getItem(params.key) || 'null');
+    super.disable();
   }
 
-  public queryAllKeys() {
-    return Object.keys(localStorage);
+  public queryItem(
+    tag: { key: string; value: string },
+    key: { key: string; value: string }
+  ) {
+    const raw = localStorage.getItem(key.value);
+    const value = raw ? JSON.parse(raw) : null;
+    this._publish('queryItemSuccess', value, tag.value);
   }
 
-  public onStorageChange(id: string, callback: (data: any) => void) {
-    this._subscribe(id, 'snapshot', callback);
+  public queryAllKeys(
+    tag: { key: string; value: string }
+  ) {
+    this._publish('queryAllKeysSuccess', Object.keys(localStorage), tag.value);
+  }
+
+  public setItem(
+    tag: { key: string; value: string },
+    entry: { key: string; value: { key: string; data: any } }
+  ) {
+    localStorage.setItem(entry.value.key, JSON.stringify(entry.value.data));
+  }
+
+  public removeItem(
+    tag: { key: string; value: string },
+    key: { key: string; value: string }
+  ) {
+    localStorage.removeItem(key.value);
+  }
+
+  public clear(
+    tag: { key: string; value: string }
+  ) {
+    localStorage.clear();
+  }
+
+  public on(eventName: string) {
+    return this._subscribe(eventName);
   }
 }
 
 const storageState = new StorageState();
-reactToState.setState('StorageModel', storageState);
-export { storageState };
+export default storageState;
 ```
 
 Note 1:
 
-Only within State corresponding to React functional components and hooks, **the callback of `this._subscribe` can receive two parameters**, namely the current value and the previous value.
+Use `enable()` to set up event listeners and `disable()` to tear them down. No React hooks needed — all browser APIs are used directly.

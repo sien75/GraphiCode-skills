@@ -16,22 +16,49 @@ About state README's format, see: `./references/state.md`.
 
 The user provides one or a list of state readme IDs. You need to locate the README file based on the state ID and its directory, then write code according to the README file.
 
-Specifically, you need to implement a `React functional component` if the state resides in `browser-dom`, or a `React hook` if the state resides in `memory` / `network` / `browser-BOM` / `browser-storage`.
+Specifically:
+- If the state resides in `browser-dom`, implement a **React functional component** with a corresponding State class bridged via `reactToState.useCapture`.
+- For all other resides-in types (`memory` / `network` / `browser-BOM` / `browser-storage`), implement a **direct `Subscription` class** — no React hooks, no Umi model pattern.
 
-## case 1: /src/pages
+## Method & Event Implementation
 
-This directory contains all the pages of the Umi project, with each page exporting a React component. 
+State nodes have 2 types of external interaction:
+
+1. **`method`**: Corresponds directly to class methods.
+2. **`event`**: Represents an event name. Handled by a single `on(eventName)` method that returns an Observable from `_subscribe`.
+
+### Method Parameter Format
+
+Every method **must** accept parameters in `({key, value}, {key, value}, ...)` format — each parameter is a `{ key: string; value: any }` object. The **first** parameter is always `{ key: '__tag', value: string }`.
+
+**Why key-value format?** The Flow system uses curried parameter collection, and parameters may arrive in **any order**. The `key` field lets the method identify each parameter regardless of arrival order.
+
+### No Direct Return Values
+
+Methods must **not** return values directly. Instead, publish results as events via `this._publish(eventName, payload, tag.value)`. The `_publish` method auto-appends `-${tag}` suffix when tag is non-empty (for linked/linkTo scoping).
+
+## case 1: /src/pages (browser-DOM)
+
+This directory contains all the pages of the Umi project, with each page exporting a React component.
 
 For how to write Page State, see: `./references/pages.md`.
 
-## case 2: /src/models
+### useCapture Mechanism (pages only)
 
-In Umi, /src/models is the global state. It should **manage all other state that is not directly related to UI**, such as: network request management / complex state management / route management / *storage management / browser-BOM management, etc.
+For page states, `reactToState.useCapture(id, data, methods)` bridges React component internal state to the State class:
+
+- When `data` properties change, `SubscriptionWithSetter.setData` auto-calls `_publish(propertyName, newValue)` — this is the source of **same-named events** in the README (e.g., property `count` → event `count`).
+- These auto-published events do **NOT** carry tag suffix — they are global property-change notifications.
+- Hook-bridged methods use underscore-prefixed private properties (e.g., `_increase`), wrapped by public methods that accept `{key, value}` format.
+
+## case 2: /src/states
+
+This directory contains all non-UI state. These are **direct `Subscription` classes** — no React hooks, no Umi model pattern. They use browser APIs or library APIs directly.
 
 For network request management, see: `./references/network-model.md`.
 For complex state management, see: `./references/sophisticated-state-model.md`.
 For route management, see: `./references/route-model.md`.
-For *storage management, see: `./references/storage-model.md`.
+For storage management, see: `./references/storage-model.md`.
 For browser-BOM management, see: `./references/browser-bom-model.md`.
 
 ## case 3: /src/constants
@@ -51,7 +78,7 @@ About Umi runtime environment APIs, see: `./references/umi.md`.
 The candidate files depend on the state directory:
 
 - **If under `/src/pages`**: `README.md`, `index.tsx`, `index.less`, and dependent components.
-- **If under other directories** (e.g. `/src/models`, `/src/constants`): `README.md` and `index.ts`.
+- **If under other directories** (e.g. `/src/states`, `/src/constants`): `README.md` and `index.ts`.
 
 Only read the files that are **needed for the current task** — do not read all files blindly.
 
@@ -64,7 +91,7 @@ cat ./<stateDir>/<stateId>/<file>
 The candidate files depend on the state directory:
 
 - **If under `/src/pages`**: `index.tsx`, `index.less`, and dependent components.
-- **If under other directories** (e.g. `/src/models`, `/src/constants`): `index.ts`.
+- **If under other directories** (e.g. `/src/states`, `/src/constants`): `index.ts`.
 
 Only write the files that **need to be created or modified** — do not overwrite files that don't need changes.
 
