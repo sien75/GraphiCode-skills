@@ -205,6 +205,10 @@ Write the generated code:
 echo '...' > ./<flowDir>/<flowId>/index.ts
 ```
 
+# Type Safety
+
+When declaring variables or state properties, **always initialize with the type's default value** (e.g., `number` → `0`, `string` → `''`, `boolean` → `false`, `array` → `[]`, `object` → `{}`). Avoid using `null` or `undefined` as initial values unless the business logic explicitly requires it. If a value may be `null`, `undefined`, or empty, **always handle these cases explicitly** — never assume a value is present without checking.
+
 ## Notes
 
 After completing the write operation, simply reply with "mission complete". No need to explain changes.

@@ -55,11 +55,11 @@ For page states, `reactToState.useCapture(id, data, methods)` bridges React comp
 
 This directory contains all non-UI state. These are **direct `Subscription` classes** — no React hooks, no Umi model pattern. They use browser APIs or library APIs directly.
 
-For network request management, see: `./references/network-model.md`.
-For complex state management, see: `./references/sophisticated-state-model.md`.
-For route management, see: `./references/route-model.md`.
-For storage management, see: `./references/storage-model.md`.
-For browser-BOM management, see: `./references/browser-bom-model.md`.
+For network request management, see: `./references/network-state.md`.
+For complex state management, see: `./references/sophisticated-state-state.md`.
+For route management, see: `./references/route-state.md`.
+For storage management, see: `./references/storage-state.md`.
+For browser-BOM management, see: `./references/browser-bom-state.md`.
 
 ## case 3: /src/constants
 
@@ -98,6 +98,10 @@ Only write the files that **need to be created or modified** — do not overwrit
 ```sh
 echo '...' > ./<stateDir>/<stateId>/<file>
 ```
+
+# Type Safety
+
+When declaring variables or state properties, **always initialize with the type's default value** (e.g., `number` → `0`, `string` → `''`, `boolean` → `false`, `array` → `[]`, `object` → `{}`). Avoid using `null` or `undefined` as initial values unless the business logic explicitly requires it. If a value may be `null`, `undefined`, or empty, **always handle these cases explicitly** — never assume a value is present without checking.
 
 # Others
 

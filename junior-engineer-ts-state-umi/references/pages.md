@@ -70,6 +70,8 @@ Note 1:
 
 Page UI components should **only contain JSX DOM element descriptions and internally defined local states**. Use only official React hooks like `useState`, `useEffect`, `useCallback`, `useMemo`, and register them into the GraphiCode system using `reactToState.useCapture`. GraphiCode will control the internal state of this component.
 
+**Do NOT use any non-React-official hooks** (e.g., Umi's `useLocation`, `useParams`, `useSearchParams`, or any routing hooks) inside page components. Route and BOM information should be obtained from the corresponding browser-BOM state class — let the Flow system connect them to the page, rather than calling hooks directly in the component.
+
 Note 2:
 
 Since page components are only instantiated globally once, there will be no multi-instance issues when accessing the internal state and methods of this component instance. For ordinary components, they may be instantiated multiple times due to multiple references or list rendering; therefore, **never use `reactToState.useCapture` to access the internal state and methods of non-page components**. Furthermore, ordinary components are always imported by page components, so there is no need to access their internal state.
