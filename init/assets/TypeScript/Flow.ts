@@ -6,7 +6,7 @@ type State = {
 };
 
 const curried = (
-  fn: Function,
+  fn: (...args: Record<string, any>[]) => any,
   serialNumber: number,
   logs: Map<number, any[]>
 ): (param: Record<string, any>) => any => {
@@ -44,9 +44,11 @@ export class Flow {
     const method = targetState[targetMethod];
     if (typeof method !== 'function') return;
 
-    sourceState.on(eventName).pipe(
-      ...algorithms.map(algo => map((payload: any) => algo({ logs: this.logs, payload })))
-    ).subscribe((payload: Record<string, any>) => {
+    const mappedAlgorithms: any = algorithms.map(algo => map((payload: any) => algo({ logs: this.logs, payload })));
+
+    (sourceState.on(eventName).pipe as any)(
+      ...mappedAlgorithms
+    ).subscribe((payload: any) => {
       if (!this.curriedCache.has(targetState)) {
         this.curriedCache.set(targetState, new Map());
       }

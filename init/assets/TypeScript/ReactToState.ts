@@ -51,16 +51,19 @@ class ReactToState {
    * @param data The data (state) to expose
    * @param methods The methods (functions) to expose
    */
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   public useCapture(id: string, data: any, methods: any) {
     const state = this._registry.get(id)!;
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     useEffect(() => {
       state.setData(data);
-    }, [id, ...data]);
+    }, [id, ...Object.values(data || {})]);
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks
     useEffect(() => {
       state.setMethods(methods);
-    }, [id, ...methods]);
+    }, [id, ...Object.values(methods || {})]);
   }
 
   /**

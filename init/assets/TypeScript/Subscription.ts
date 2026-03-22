@@ -23,6 +23,8 @@ class Subscription {
     return this._enabledSubject;
   }
 
+  [key: string]: any;
+
   protected _subscribe(id: string): Subject<any> {
     if (!this._subjects.has(id)) {
       this._subjects.set(id, new Subject<any>());

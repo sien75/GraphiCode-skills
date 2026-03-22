@@ -19,20 +19,13 @@ browser-DOM
 This state is a browser-DOM state, holding a count state and displaying a count card on the screen.
 ```
 
+**README `# event` vs `useCapture` data object:** For page React functional components, the state README’s **`# event` section must list every key** you pass as **`useCapture`’s second argument** (the `data` object, e.g. `{ count }`). When any of those values change, `SubscriptionWithSetter.setData` **automatically** publishes an Observable event **named after that property** — you do not call `_publish` for those in the component. Example: `useCapture(..., { count }, ...)` ⇒ document `count` under `# event` so Flow and readers know it is a first-class, auto-emitted stream.
+
 ```ts
 import React, { useState } from 'react';
 import { SubscriptionWithSetter, Status, reactToState } from 'graphicode-utils';
 
-// this function is used to render React DOM
-export default () => {
-  const [count, setCount] = useState(0);
-  const increase = () => setCount(count + 1);
-  const decrease = () => setCount(count - 1);
-  reactToState.useCapture('CountPage', { count }, { _increase: increase, _decrease: decrease });
-  return <div>{count}</div>;
-}
-
-// this class is corresponded to page functional component, and is used as a State for GraphiCode
+// 1) Page State class — typed fields / methods; define and register before the component
 class CountPageState extends SubscriptionWithSetter implements Status {
   private count: number;
   private _increase: () => void;
@@ -64,7 +57,20 @@ class CountPageState extends SubscriptionWithSetter implements Status {
 const countPageState = new CountPageState();
 reactToState.setState('CountPage', countPageState);
 export { countPageState };
+
+// 2) Default-export React functional component — DOM + hooks; useCapture id must match setState above
+export default () => {
+  const [count, setCount] = useState(0);
+  const increase = () => setCount(count + 1);
+  const decrease = () => setCount(count - 1);
+  reactToState.useCapture('CountPage', { count }, { _increase: increase, _decrease: decrease });
+  return <div>{count}</div>;
+};
 ```
+
+Note 0:
+
+In one page module (`index.tsx`), **put the `*PageState` class, `new` + `reactToState.setState`, and `export { xxxPageState }` above** the default-export React component. Then `xxxPageState` and its type annotations are always declared before any use (including other modules or Flow wiring), avoiding temporal-dead-zone / use-before-declaration problems.
 
 Note 1: 
 
@@ -82,7 +88,7 @@ Hook-bridged methods (set by `useCapture`) use underscore-prefixed private prope
 
 Note 4:
 
-For `SubscriptionWithSetter` states, property change events are auto-published by `setData` using the **property name** as the event name (e.g., property `count` → event `count`). The Flow listens via `state.on('count')`.
+For page states bridged with `reactToState.useCapture`, **keep the README `# event` list in sync with the `data` object’s keys**. Each key in `useCapture(id, { ... }, methods)` is watched; on change, `setData` **auto-publishes** an event whose name equals that key (e.g. `count` → `state.on('count')`). Treat these as **implicit events** — they are not manually `_publish`’d from the functional component. Manually published events (e.g. from class methods via `_publish`) still belong in `# event` as usual.
 
 Note 5:
 

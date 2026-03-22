@@ -41,7 +41,7 @@ Methods must **not** return values directly. Instead, publish results as events 
 
 This directory contains all the pages of the Umi project, with each page exporting a React component.
 
-For how to write Page State, see: `./references/pages.md`.
+For how to write Page State, see: `./references/pages.md`. In the same file, **first** define the page State class (with typed fields / methods), instantiate it, and `reactToState.setState` — **then** write the default-export React functional component (`useCapture` id must match `setState`).
 
 ### useCapture Mechanism (pages only)
 
