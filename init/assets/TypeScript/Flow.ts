@@ -8,16 +8,16 @@ type State = {
 const curried = (
   fn: Function,
   serialNumber: number,
-  context: Map<number, any[]>
+  logs: Map<number, any[]>
 ): (param: Record<string, any>) => any => {
   const collected: Record<string, any>[] = [];
   const step = (param: Record<string, any>): any => {
     collected.push(param);
     if (collected.length >= fn.length) {
       const output = fn(...collected);
-      const records = context.get(serialNumber) ?? [];
+      const records = logs.get(serialNumber) ?? [];
       records.push({ input: [...collected], output });
-      context.set(serialNumber, records);
+      logs.set(serialNumber, records);
       return output;
     }
     return step;
@@ -27,7 +27,7 @@ const curried = (
 
 export class Flow {
   private curriedCache = new Map<object, Map<string, (param: Record<string, any>) => any>>();
-  private context = new Map<number, any[]>();
+  private logs = new Map<number, any[]>();
 
   protected _connect(
     serialNumber: number,
@@ -45,7 +45,7 @@ export class Flow {
     if (typeof method !== 'function') return;
 
     sourceState.on(eventName).pipe(
-      ...algorithms.map(algo => map((payload: any) => algo({ context: this.context, payload })))
+      ...algorithms.map(algo => map((payload: any) => algo({ logs: this.logs, payload })))
     ).subscribe((payload: Record<string, any>) => {
       if (!this.curriedCache.has(targetState)) {
         this.curriedCache.set(targetState, new Map());
@@ -53,7 +53,7 @@ export class Flow {
       const methodCache = this.curriedCache.get(targetState)!;
 
       if (!methodCache.has(targetMethod)) {
-        const initial = curried(method.bind(targetState), serialNumber, this.context);
+        const initial = curried(method.bind(targetState), serialNumber, this.logs);
         const tagValue = tag?.linked ?? '';
         const afterTag = initial({ key: '__tag', value: tagValue });
         methodCache.set(targetMethod, afterTag);
