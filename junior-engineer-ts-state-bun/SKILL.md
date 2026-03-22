@@ -29,9 +29,7 @@ When writing code, you should import the relevant type declarations from the typ
 
 Every method **must** accept parameters in `({key, value}, {key, value}, ...)` format — each parameter is a `{ key: string; value: any }` object.
 
-The **first** parameter is always `{ key: '__tag', value: string }`:
-- If `value` is a non-empty string, it is a scoping tag from a `linked` flow connection. The method **must** use this tag to suffix its published events (e.g., `this._publish(\`eventName-${tag}\`, data)`).
-- If `value` is `''` (empty string), no scoping — publish events normally.
+The **first** parameter is always `{ key: '__tag', value: string }`. When publishing events inside a method, pass `tag.value` as the third argument to `_publish` (e.g., `this._publish(eventName, data, tag.value)`).
 
 **Why key-value format?** Because the Flow system uses curried parameter collection, and parameters may arrive in **any order** depending on which events fire first. The `key` field lets the method identify each parameter regardless of arrival order.
 

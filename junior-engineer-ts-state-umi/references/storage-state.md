@@ -41,6 +41,7 @@ class StorageState extends Subscription implements Status {
     this.handler = (e: StorageEvent) => {
       if (e.key) {
         const newValue = e.newValue ? JSON.parse(e.newValue) : null;
+        // global state-change event, not triggered by a method call — no tag
         this._publish('storageChange', { key: e.key, value: newValue });
       }
     };

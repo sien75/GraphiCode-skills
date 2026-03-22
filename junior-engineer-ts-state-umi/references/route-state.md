@@ -43,6 +43,7 @@ class RouteState extends Subscription implements Status {
     this.location = history.location;
     this.unlisten = history.listen(({ location }) => {
       this.location = location;
+      // global state-change event, not triggered by a method call — no tag
       this._publish('location', location);
     });
     super.enable();

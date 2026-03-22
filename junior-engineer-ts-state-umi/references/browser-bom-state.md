@@ -48,14 +48,17 @@ class BOMState extends Subscription implements Status {
 
     this.resizeHandler = () => {
       this.size = { width: window.innerWidth, height: window.innerHeight };
+      // global state-change event, not triggered by a method call — no tag
       this._publish('size', this.size);
     };
     this.onlineHandler = () => {
       this.online = true;
+      // global state-change event, not triggered by a method call — no tag
       this._publish('isOnline', true);
     };
     this.offlineHandler = () => {
       this.online = false;
+      // global state-change event, not triggered by a method call — no tag
       this._publish('isOnline', false);
     };
 
