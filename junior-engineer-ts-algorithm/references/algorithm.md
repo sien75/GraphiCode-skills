@@ -2,7 +2,7 @@
 
 ## what is algorithm node
 
-Algorithm nodes receive input, process it through their own logic, and produce output data. In the flow system, algorithms are chained in a pipe — each algorithm receives `{ context, payload }` and returns a transformed value that becomes the next step's payload.
+Algorithm nodes receive input, process it through their own logic, and produce output data. In the flow system, algorithms are chained in a pipe — each algorithm receives `{ logs, payload }` and returns a transformed value that becomes the next step's payload.
 
 ## example
 

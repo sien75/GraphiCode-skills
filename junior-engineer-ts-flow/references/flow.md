@@ -33,7 +33,7 @@ SourceState.event -> TargetState.method.param: algo1(), algo2()
 
 - `SourceState.event`: An event that triggers the flow.
 - `TargetState.method.param`: A method and one of its parameters.
-- `algo1(), algo2()`: Optional algorithm chain. Each receives `{ context, payload }` and returns transformed value.
+- `algo1(), algo2()`: Optional algorithm chain. Each receives `{ logs, payload }` and returns transformed value.
 
 ### Numbering and Linking
 
@@ -41,7 +41,7 @@ Every connection needs a number: `# 0`, `# 1`, ...
 
 Use `link` to bind downstream consumers to a specific invocation:
 
-- `# 0 linked` – initiating connection; creates flow context ID 0
+- `# 0 linked` – initiating connection; creates flow logs ID 0
 - `# 1 link to 0` – responds only to events from #0's execution
 
 `link` is needed when a method's completion event (e.g., `readSuccess`) could come from multiple independent calls. It prevents cross-flow interference.
@@ -123,7 +123,7 @@ ConfigStore.readError -> UserPage.showInitError.error: getErrorMessage() {
 }
 ```
 
-- `#0` initiates `ConfigStore.read`. It is `linked`, creating flow context 0.
+- `#0` initiates `ConfigStore.read`. It is `linked`, creating flow logs 0.
 - `ConfigStore.read` executes. On completion, it triggers either `readSuccess` or `readError`.
 - `#1` and `#2` are `link to 0`. They only respond to events from the specific `read` call initiated by `#0`.
 - This scoping ensures that if another flow also calls `ConfigStore.read`, its events won't be caught by `#1` and `#2`.

@@ -30,9 +30,9 @@ The first line is the **signature**: input parameters and output type. Each para
 
 ## Runtime Parameter Format (Critical)
 
-In the flow system, algorithm functions are chained in an rxjs pipe. Each algorithm receives a **single** `{ context, payload }` object:
+In the flow system, algorithm functions are chained in an rxjs pipe. Each algorithm receives a **single** `{ logs, payload }` object:
 
-- `context`: `Map<number, any[]>` — the Flow's shared context, containing records of all connection executions
+- `logs`: `Map<number, any[]>` — the Flow's operation history, containing records of all connection executions
 - `payload`: the data from the upstream event or previous algorithm's output
 
 The function returns the transformed value, which becomes the `payload` for the next algorithm in the chain (or the final value passed to the target state method).
@@ -71,7 +71,7 @@ type Output = {
   f: TypeF;
 };
 
-function xxx({ context, payload }: { context: Map<number, any[]>; payload: Payload }): Output {
+function xxx({ logs, payload }: { logs: Map<number, any[]>; payload: Payload }): Output {
   const { a, b, c, d } = payload;
   // here write code according to description in readme
   return { e, f };
