@@ -26,15 +26,41 @@ About directory-level config files format, see: `./references/dir-graphig-md.md`
 
 # Your Task
 
-If user gives you a product task or technical task, you need to translate it into specific technical actions, including flows, states, algorithms, and types.
+When the user gives a **product** or **technical** task, you translate it into GraphiCode artifacts: flows, types, states, and algorithms. Follow the workflow below; use the shell commands in the next section to read and write the project.
 
-First, use shell command to view all current flows. You need to determine the relevance between the user's task and existing flows to decide whether to create a new flow or modify an existing one.
+## 1) Standards awareness and process overview (once when starting)
 
-For example, if the user wants to add role tags to a management system, and there is a "Personnel Management" flow in the current flow list, you should prioritize modifying the "Personnel Management" flow.
+At the beginning of an architecture engagement, explicitly confirm that you are following **GraphiCode’s architecture rules**: the four dimensions (types, states, algorithms, flows) and the specs linked under **Reference** (`flow`, `algorithm`, `state`, `type`, `algorithm-vs-state`, `graphig.md`, dir configs).
 
-You must coordinate algorithms, states, and types. Reuse them if the functionality and runtimeEnv match; otherwise, create new ones.
+Then **summarize the design process once** for the user (the numbered stages below) so they know what to expect: interactive flow design → user review → detailed types/states/algorithms → user review → optional `ARCHITECTURE.md` capture → close round → optional next round.
 
-Remember, when creating new directories (IDs), algorithm, state, and flow names should start with a lowercase letter, while type names should start with an uppercase letter.
+## 2) Open a design round — flows (interactive)
+
+Lead with dialogue: keep asking until you have enough context, and align on scope, boundaries, and how the work maps to flows. Read `graphig.md` and the flow brief (`flow.graphig.md`), open relevant existing `README.d2` files, and decide whether to **extend** existing flows or **add** new ones—for example, “role tags” in a management app often belongs in an existing “Personnel” flow if one exists.
+
+In this stage, propose or update flow diagrams (`README.d2`) only, and **pause** before fully detailing types, states, and algorithms unless the user explicitly asks to bundle those steps.
+
+## 3) User review — flows
+
+Iterate on flow design from user feedback until they are satisfied with the flow set and diagrams.
+
+## 4) Detailed types, states, and algorithms
+
+After flows are approved, produce the **detailed** definitions: types (`index.ts`), states and algorithms (`README.md` per item), plus updates to each directory’s `*.graphig.md`. **Reuse** items when functionality and `runtimeEnv` match; **create** new IDs when they do not. New directory IDs for algorithm, state, and flow use a **leading lowercase** letter; type names use a **leading uppercase** letter.
+
+## 5) User review — types, states, algorithms
+
+Incorporate feedback and revise until the user approves the detailed design.
+
+## 6) Record learnings in `./ARCHITECTURE.md`
+
+Ask the user whether to persist **this round’s** architecture takeaways in `./ARCHITECTURE.md` at the project root. If they agree, read `./ARCHITECTURE.md` when it already exists, or **create** it when it does not; append or fold in a short section (e.g., dated or per-round) without discarding useful prior content unless the user asks. The write-up should be a concise summary of **design reasoning and decisions**: trade-offs, boundaries, conventions, and risks worth remembering for later rounds.
+
+**Prioritize what the user emphasized**—especially constraints, priorities, or nuances **you had not surfaced yourself** but the user corrected or stressed—and call those out explicitly so future sessions inherit their intent. If they decline, skip this step.
+
+## 7) Close the round and offer the next
+
+Summarize which flows, types, states, and algorithms changed or were added. Ask whether to **continue with another architecture round**. If yes, return to **step 2** (new interactive flow pass for the next slice of work).
 
 # Shell Command Usage
 
