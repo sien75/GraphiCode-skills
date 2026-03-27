@@ -22,7 +22,7 @@ In summary:
 # Your Task: Generate Code from Flow Diagram
 
 The user will provide one or more flow IDs with their directories. You must:
-1. Read the `README.d2.md` from the specified directory
+1. Read the `README.d2` from the specified directory
 2. Generate the corresponding `index.ts` file
 
 A flow module is a class that extends `Flow`. You need to:
@@ -85,7 +85,7 @@ Here `#0` passes `tag` as `linked`, so `ConfigStore.read` receives `__tag = tag`
 
 ## Example 1: Basic (no link)
 
-Given `README.d2.md`:
+Given `README.d2`:
 
 ```d2
 shape: sequence_diagram
@@ -134,7 +134,7 @@ export default new LoginFlow();
 
 ## Example 2: With `linked` / `link to`
 
-Given `README.d2.md`:
+Given `README.d2`:
 
 ```d2
 shape: sequence_diagram
@@ -197,7 +197,7 @@ export default new ConfigFlow();
 
 Read the flow README:
 ```sh
-cat ./<flowDir>/<flowId>/README.d2.md
+cat ./<flowDir>/<flowId>/README.d2
 ```
 
 Write the generated code:

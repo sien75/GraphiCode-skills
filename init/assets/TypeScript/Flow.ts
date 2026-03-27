@@ -62,7 +62,7 @@ export class Flow {
       }
 
       const step = methodCache.get(targetMethod)!;
-      const result = step({ key: targetParam, value: payload });
+      const result = typeof step === 'function' ? step({ key: targetParam, value: payload }) : step;
 
       if (typeof result !== 'function') {
         methodCache.delete(targetMethod);
@@ -72,3 +72,5 @@ export class Flow {
     });
   }
 }
+
+export default Flow;
