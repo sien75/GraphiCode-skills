@@ -29,9 +29,9 @@ Ask the user for the following fields (all at once):
 
 ## 2. Gather more info
 
-Read `./references/options.md` from this skill's directory to get the available devEnv/runtimeEnv options for the chosen language and their corresponding values:
+Read `./references/options.md` from this skill's directory to get the available devEnv/runtimeEnv options for the chosen runtime and their corresponding values:
 
-* **entryDir** — the directory where the entry file is located
+* **entryDir**
 * **flowDirs**
 * **algorithmDirs**
 * **stateDirs**
@@ -40,6 +40,7 @@ Read `./references/options.md` from this skill's directory to get the available 
 * **mainFileName**
 * **testFileName**
 * **testCommand**
+* **others**
 
 If the user's provided `language`, `devEnv`, or `runtimeEnv` does not match any entry in the reference file, prompt the user to revise their input before proceeding.
 
@@ -64,6 +65,7 @@ cat << 'EOF' > ./graphig.md
 * **mainFileName**: <mainFileName>
 * **testFileName**: <testFileName>
 * **testCommand**: <testCommand>
+* **others**: xxx
 
 ## flowDirs
 

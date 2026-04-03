@@ -1,6 +1,6 @@
 ---
 name: graphicode-start-ts-umi
-description: Invoked when user wants to implement specific state modules in TypeScript for Umi runtime environment in GraphiCode-managed projects. Writes code in TypeScript of Umi runtime environment based on the state README description.
+description: Invoked when user wants to start a TypeScript Umi development environment project in GraphiCode-managed projects. Creates the launcher.ts entry file that imports and initializes all states and flows, and enables states marked with [START].
 license: See LICENSE file.
 ---
 

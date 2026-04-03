@@ -1,6 +1,7 @@
 import Subscription from "./Subscription";
-import reactToState, { SubscriptionWithSetter } from "./ReactToState";
-import type Status from "./Status";
+import connect from "./connect";
+import type State from "./State";
 import Flow from "./Flow";
+import getArg from "./getArg";
 
-export { Subscription, SubscriptionWithSetter, reactToState, Status, Flow };
+export { Subscription, connect, State, Flow, getArg };

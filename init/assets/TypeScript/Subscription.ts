@@ -25,15 +25,15 @@ class Subscription {
 
   [key: string]: any;
 
-  protected _subscribe(id: string): Subject<any> {
+  public _subscribe(id: string): Subject<any> {
     if (!this._subjects.has(id)) {
       this._subjects.set(id, new Subject<any>());
     }
-    
+
     return this._subjects.get(id)!;
   }
 
-  protected _publish(id: string, payload?: any, tag?: string): void {
+  public _publish(id: string, payload?: any, tag?: string): void {
     if (!this._enabled) return;
     const eventName = tag ? `${id}-${tag}` : id;
     const subject = this._subjects.get(eventName);
