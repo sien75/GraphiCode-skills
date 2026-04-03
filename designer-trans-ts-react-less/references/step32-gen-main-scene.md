@@ -47,7 +47,9 @@ const Page = () => {
 
 The React Component generated from main static mockup is still static. Now you need to assign real props parameters to designated positions in TSX.
 
-First, you need to assign props in `<stateDirs.pages>/<stateId>/<mainFileName>` to each scene:
+First, you need to assign props in `<stateDirs.pages>/<stateId>/<mainFileName>` to each scene.
+
+**IMPORTANT: You MUST pass the complete `data` object to every scene component. Do NOT selectively pass a subset of data fields (e.g., `{ status, email }`) to different scenes. Each scene component receives the full `data` and internally decides which fields to use.** The principle "NOT all data and event list need to be used" applies INSIDE scene components, NOT at the index.tsx level.
 
 ```tsx
 // other code
@@ -167,7 +169,17 @@ Related types are: {xxx} (supplied by main agent, read from `<typeDirs>/<typeId>
 
 **What is secondary scene?**
 
-{xxx} (supplied by main agent).
+Name: {xxx} (supplied by main agent, the name of the secondary scene from node-ids.md).
+Description in node-ids.md: {xxx} (supplied by main agent, the description text from node-ids.md only, no interpretation).
+
+**IMPORTANT: You MUST discover the differences yourself by reading and comparing files. Do NOT rely on the name/description above to assume what the differences are. Follow the comparison procedure below.**
+
+**Comparison Procedure (MUST follow in order):**
+1. Read the secondary scene's tsx file AND less file in full
+2. Read the main scene's current tsx file AND less file in full
+3. Compare both tsx files to identify structural differences (e.g., added/removed elements, changed attributes, conditional rendering)
+4. Compare both less files to identify style differences (e.g., loading styles, disabled/greyed-out styles, active/hover states, visibility changes)
+5. Based on ALL differences found (structural + style), determine what modifications are needed in the main scene
 
 In the specific scene code (e.g., Page1.tsx), implement the secondary scene code, for example, the reviewing uneditable scene here:
 

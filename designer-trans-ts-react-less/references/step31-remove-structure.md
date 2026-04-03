@@ -2,6 +2,8 @@
 
 Check the tsx and less files in the `<designContextDirs>/<stateId>` directory. For each pair of tsx & less files with the same name, start a subagent to do the following.
 
+**IMPORTANT: You MUST use a subagent for each tsx & less pair. Do NOT read mockup file contents in the main context.** Reason: mockup files are typically very large; reading them in the main context wastes tokens and pollutes the context window, degrading the quality of subsequent steps. Delegate all file reading and modification to the subagent.
+
 ## for subagent context
 
 ```md

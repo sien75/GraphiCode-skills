@@ -100,7 +100,7 @@ The connect function is the key to linking State Class and React component. Pass
 ```tsx
 import React from 'react';
 import LoginPageStatus from '<typeDir>/LoginPageStatus';
-import { Subscription, State, getArg, connect } from 'graphicode-utils';
+import { Subscription, State, getArg, connect } from '@/graphicode-utils';
 import { Observable } from 'rxjs';
 
 // State Class - Manages internal state and logic of login page
@@ -162,6 +162,8 @@ export class LoginPageState extends Subscription implements State {
   }
 }
 
+const loginPageState = new LoginPageState();
+
 const LoginPage: React.FC<{  any, stateInstance: LoginPageState }> = (props) => {
   const {
      {
@@ -182,7 +184,7 @@ const LoginPage: React.FC<{  any, stateInstance: LoginPageState }> = (props) => 
   return null;
 };
 
-const LoginPageWithState = connect(LoginPageState, 'LoginPageState.__stateChange', LoginPage);
+const LoginPageWithState = connect(loginPageState, 'LoginPageState.__stateChange', LoginPage);
 
 export default LoginPageWithState;
 ```

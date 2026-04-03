@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Subscription } from 'graphicode-utils';
+import Subscription from './Subscription';
 
 /**
  * Connect a state instance to a React functional component.
@@ -12,7 +12,7 @@ import { Subscription } from 'graphicode-utils';
 export function connect<S extends Subscription>(
   stateInstance: S,
   eventName: string,
-  WrappedComponent: React.FC<{ state: any; methods: S }>
+  WrappedComponent: React.FC<{ data: any; stateInstance: S }>
 ): React.FC {
   const ConnectedComponent: React.FC = () => {
     const [data, setData] = useState<any>({});
@@ -33,7 +33,7 @@ export function connect<S extends Subscription>(
       };
     }, [stateInstance, eventName]);
 
-    return React.createElement(WrappedComponent, { data, stateInstance });
+    return <WrappedComponent data={data} stateInstance={stateInstance} />;
   };
 
   return ConnectedComponent;

@@ -107,3 +107,24 @@ No action needed for now.
 Delete all temporary files under `./.tmp`.
 
 # Notes
+
+## Type Import Rule
+
+All types used in scene components MUST be imported from `<typeDirs>/<typeId>` (e.g., `import LoginPageStatus from '@/types/LoginPageStatus'`). It is FORBIDDEN to redefine types that already exist in `typeDirs` within scene components.
+
+## Less Nesting Rule
+
+In less files, all child class selectors MUST be nested inside the root-level class. Flat structures (all classes at the same level) are forbidden, as they cause cross-component class name conflicts. `:root` variable definitions are the only exception.
+
+```less
+// Correct
+.loginPage {
+  .logoArea { ... }
+  .formTitle { ... }
+}
+
+// Wrong - causes class name conflicts
+.loginPage { ... }
+.logoArea { ... }
+.formTitle { ... }
+```

@@ -105,11 +105,11 @@ mkdir -p <typeDir> && echo '# type' > <typeDir>/type.graphig.md
 
 ## 5. Copy utility files
 
-Copy the language-specific utility files from this skill's assets directory to the project's `graphicode-utils/` directory:
+Copy the language-specific utility files from this skill's assets directory to the project's `src/graphicode-utils/` directory:
 
 ```sh
 mkdir -p ./graphicode-utils
-cp <this-skill-dir>/assets/<language>/* ./graphicode-utils/
+cp <this-skill-dir>/assets/<language>/* ./src/graphicode-utils/
 ```
 
 Replace `<language>` with the value of the `language` field in `graphig.md` (e.g., `TypeScript`).
