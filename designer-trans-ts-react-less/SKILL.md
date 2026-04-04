@@ -31,6 +31,7 @@ The following configurations need to be read from `graphig.md`:
 | `runtimeEnv` | Runtime environment, determines which `resides-in` options are available |
 | `componentMappingFileName` | Component mapping filename |
 | `assetDirs` | Asset directory |
+| `designSpecFileName` | Design spec file name |
 
 ## Step 1: Read the README file
 
@@ -108,9 +109,19 @@ For each scene's tsx & less pair under `stateDirs.pages` (excluding index.tsx an
 
 Delete all temporary files under `./.tmp`.
 
-## Step 4: Syntax check
+## Step 4: Review and fix
 
-Check and fix syntax issues in all generated tsx and less files under `stateDirs.pages`.
+**IMPORTANT: You MUST use a subagent for each tsx & less pair. Do NOT read scene file contents in the main context. You MUST pass the following to each subagent: the page name (stateId), the page directory path (`<stateDirs.pages>/<stateId>/`), the scene's tsx and less file paths, the `componentMappingFileName` path, and the `designSpecFileName` path.**
+
+For each scene's tsx & less pair under `stateDirs.pages` (excluding index.tsx and index.less), the subagent should check and fix the following:
+
+1. **Syntax errors**: Ensure there are no TypeScript or Less syntax errors.
+2. **Component replacement**: Verify that matched static code has been properly replaced with components as defined in `componentMappingFileName`.
+3. **Design spec compliance**: Check that styles conform to the design specification defined in `designSpecFileName`. Fix any deviations.
+
+## Step 5: Notify the user
+
+Inform the user that the current task is complete. If they need to make style adjustments or implement new modules, suggest starting a new conversation window to save context and avoid ambiguity.
 
 # Notes
 

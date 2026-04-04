@@ -21,12 +21,15 @@ export function connect<S extends Subscription>(
       // Initial state fetch
       stateInstance.getState({ key: 'tag', value: eventName });
 
-      // Subscribe to state change event to get full state updates
+      // Subscribe to state change event FIRST to catch initial state
       const subscription = stateInstance
         .on(eventName)
         .subscribe((newState: any) => {
           setData((prevState: any) => ({ ...prevState, ...newState }));
         });
+
+      // Then fetch initial state
+      stateInstance.getState({ key: 'tag', value: eventName });
 
       return () => {
         subscription.unsubscribe();
