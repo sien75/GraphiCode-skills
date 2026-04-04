@@ -54,7 +54,7 @@ First, you need to assign props in `<stateDirs.pages>/<stateId>/<mainFileName>` 
 ```tsx
 // other code
 const Page: React.FC<{  any, stateInstance: Xxx }> = (props) => {
-   const {  data, stateInstance } = props;
+   const { data, stateInstance } = props;
   return (
     <div>
        <Page1  data={data} stateInstance={stateInstance} />
@@ -110,6 +110,8 @@ const onEdit = () => {
 <div className="name">{name}</div>
 <button onClick={onEdit} disabled={!canEdit}>edit</button>
 // other code
+
+**Less module usage**: Use CSS Modules import syntax (e.g., `import styles from './Page1.less'` and `className={styles.xxx}`), but keep the file extension as `.less` — do NOT rename files to `.module.less`.
 
 The less file changes are similar, ensure all CSS classes in tsx have corresponding definitions in the less file.
 
@@ -213,6 +215,8 @@ const onEdit = () => {
 <div className="name">{name}</div>
 <button onClick={onEdit} disabled={reviewing}>edit</button>
 // other code
+
+**Less module usage**: Use CSS Modules import syntax (e.g., `import styles from './Page1.less'` and `className={styles.xxx}`), but keep the file extension as `.less` — do NOT rename files to `.module.less`.
 
 The less file changes are similar, ensure all CSS classes in tsx have corresponding definitions in the less file.
 

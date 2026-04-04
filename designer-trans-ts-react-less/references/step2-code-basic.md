@@ -164,9 +164,9 @@ export class LoginPageState extends Subscription implements State {
 
 const loginPageState = new LoginPageState();
 
-const LoginPage: React.FC<{  any, stateInstance: LoginPageState }> = (props) => {
+const LoginPage: React.FC<{ data: any, stateInstance: LoginPageState }> = (props) => {
   const {
-     {
+    data: {
       status,
       email,
       loginCodeCountdown,

@@ -1,6 +1,6 @@
 ---
 name: graphicode-designer-trans-ts-react-less
-description: Invoked when user wants to translate static TypeScript + React + Less mockups into functional browser-DOM state components for GraphiCode-managed projects.
+description: Invoked when user wants to translate static TypeScript + React + Less module mockups into functional browser-DOM state components for GraphiCode-managed projects.
 license: See LICENSE file.
 ---
 
@@ -96,13 +96,13 @@ For step details, refer to `./references/step32-gen-main-scene.md`.
 
 ### Step 3.3: Replace matched static code with components and adapt width/height styles
 
-For each scene's tsx & less pair under `stateDirs.pages` (excluding index.tsx and index.less), perform the following two tasks together:
+**IMPORTANT: You MUST use a subagent for each tsx & less pair. Do NOT read scene file contents in the main context. You MUST pass the scene's tsx and less file paths as well as the `componentMappingFileName` path to the subagent.**
 
-1. **Component mapping replacement**: Refer to the `componentMappingFileName` file to obtain the mapping between static code and components. Replace the matched static code in each scene with the corresponding components to ensure the page has the required capabilities.
+For each scene's tsx & less pair under `stateDirs.pages` (excluding index.tsx and index.less), the subagent should perform the following two tasks together:
 
-2. **Width and height style adaptation**: Since the styles provided by the design draft use fixed sizes, you need to adapt the width and height for each scene's code. In general, for components displayed in the normal page layout flow, set `width: 100%` and `height: 100%` to ensure proper display in containers of different sizes. For drawer-type components, keep the original width and set `height: 95%` to ensure sufficient height.
+1. **Component mapping replacement**: Read the `componentMappingFileName` file to obtain the mapping between static code and components. Replace the matched static code in the scene with the corresponding components to ensure the page has the required capabilities.
 
-**IMPORTANT: You MUST use a subagent for each tsx & less pair. Do NOT read scene file contents in the main context.**
+2. **Width and height style adaptation**: Since the styles provided by the design draft use fixed sizes, adapt the width and height for the scene's code. In general, for components displayed in the normal page layout flow, set `width: 100%` and `height: 100%` to ensure proper display in containers of different sizes. For drawer-type components, keep the original width and set `height: 95%` to ensure sufficient height.
 
 ### Step 3.4: Clear temporary files
 
