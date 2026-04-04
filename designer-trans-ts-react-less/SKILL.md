@@ -29,7 +29,7 @@ The following configurations need to be read from `graphig.md`:
 | `mainFileName` | Main filename for page components (e.g., `index.tsx`) |
 | `designContextDirs` | Design context directory for finding static mockup files |
 | `runtimeEnv` | Runtime environment, determines which `resides-in` options are available |
-| `componentMapping` | Component mapping configuration for replacing static code with project components |
+| `componentMappingFileName` | Component mapping filename |
 | `assetDirs` | Asset directory |
 
 ## Step 1: Read the README file
@@ -94,17 +94,23 @@ Then, handle all "secondary static mockup" files (tsx & less) temporarily stored
 
 For step details, refer to `./references/step32-gen-main-scene.md`.
 
-### Step 3.3: Replace matched static code with components using "componentMapping" specification
+### Step 3.3: Replace matched static code with components and adapt width/height styles
 
-No action needed for now.
+For each scene's tsx & less pair under `stateDirs.pages` (excluding index.tsx and index.less), perform the following two tasks together:
 
-### Step 3.4: Width and height style adaptation
+1. **Component mapping replacement**: Refer to the `componentMappingFileName` file to obtain the mapping between static code and components. Replace the matched static code in each scene with the corresponding components to ensure the page has the required capabilities.
 
-No action needed for now.
+2. **Width and height style adaptation**: Since the styles provided by the design draft use fixed sizes, you need to adapt the width and height for each scene's code. In general, for components displayed in the normal page layout flow, set `width: 100%` and `height: 100%` to ensure proper display in containers of different sizes. For drawer-type components, keep the original width and set `height: 95%` to ensure sufficient height.
 
-### Step 3.5: Clear temporary files
+**IMPORTANT: You MUST use a subagent for each tsx & less pair. Do NOT read scene file contents in the main context.**
+
+### Step 3.4: Clear temporary files
 
 Delete all temporary files under `./.tmp`.
+
+## Step 4: Syntax check
+
+Check and fix syntax issues in all generated tsx and less files under `stateDirs.pages`.
 
 # Notes
 

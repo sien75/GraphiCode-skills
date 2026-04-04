@@ -30,7 +30,7 @@
 * testCommand: `bun test {testFile}`
 * others
   * componentDirs: `src/components`
-  * componentMapping: `COMPONENT-MAPPING.md`
+  * componentMappingFileName: `COMPONENT-MAPPING.md`
   * designContextDirs: `context/design`
   * productContextDirs: `context/product`
   * assetDirs: `src/assets`
