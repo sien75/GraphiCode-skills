@@ -118,7 +118,7 @@ The less file changes are similar, ensure all CSS classes in tsx have correspond
 Write the changes back to tsx and less files.
 ```
 
-## Handle non-storyboard / toast secondary static mockup
+## Handle non-toast secondary static mockup
 
 This type of secondary static mockup contains different scenarios adjacent to the previous main static mockup, such as:
 
@@ -223,10 +223,47 @@ The less file changes are similar, ensure all CSS classes in tsx have correspond
 Write the changes back to main scene tsx and less files.
 ```
 
-## Handle storyboard secondary static mockup
-
-Can be handled later.
-
 ## Handle toast secondary static mockup
 
-Can be handled later.
+Toast secondary static mockups show toast/notification messages that appear in response to certain actions or states. Unlike non-toast secondary, you don't need to diff two mockups — you just need to know the toast content and when it triggers.
+
+Similarly start a subagent and inject:
+
+1. tsx and less file paths for the associated main scene (in `<stateDirs.pages>/<stateId>/`)
+2. tsx and less file paths for the toast secondary scene (in `./.tmp/`)
+3. state and event parts from README
+4. Related type details
+5. Toast name from node-ids.md
+
+### for subagent context
+
+```md
+Read the main scene React component and add toast trigger logic.
+
+Main scene
+React path: {xxx} (supplied by main agent).
+less path: {xxx} (supplied by main agent).
+
+Toast secondary scene
+React path: {xxx} (supplied by main agent).
+less path: {xxx} (supplied by main agent).
+
+props follows the { data, stateInstance } format.
+
+where data type is: {xxx} (supplied by main agent, i.e., state part from README).
+
+`stateInstance._publish(eventId, payload)` can trigger events, where eventId and corresponding event type are: {xxx} (supplied by main agent, i.e., event part from README).
+
+Related types are: {xxx} (supplied by main agent, read from `<typeDirs>/<typeId>/index.ts`).
+
+**Toast info**
+
+Name: {xxx} (supplied by main agent, the name of the toast secondary scene from node-ids.md).
+Description in node-ids.md: {xxx} (supplied by main agent, the description text from node-ids.md only, no interpretation).
+
+Read the toast secondary scene's tsx file to identify the toast content, then determine under what circumstances this toast is triggered based on data and events from README. Add the toast trigger logic into the main scene tsx and less files.
+
+**Less module usage**: Use CSS Modules import syntax (e.g., `import styles from './Page1.less'` and `className={styles.xxx}`), but keep the file extension as `.less` — do NOT rename files to `.module.less`.
+
+Write the changes back to main scene tsx and less files.
+```

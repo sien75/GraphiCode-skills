@@ -25,7 +25,7 @@ The following configurations need to be read from `graphig.md`:
 | Configuration | Purpose |
 |---|---|
 | `stateDirs.pages` | Directory containing page state README files |
-| `typeDirs` | Type definition directory for looking up types referenced in README (e.g., `dir1/TypeX`) |
+| `typeFileName` | Type definition name |
 | `mainFileName` | Main filename for page components (e.g., `index.tsx`) |
 | `designContextDirs` | Design context directory for finding static mockup files |
 | `runtimeEnv` | Runtime environment, determines which `resides-in` options are available |
@@ -87,23 +87,20 @@ First, read all "main static mockup" files (tsx & less) temporarily stored in St
 
 Then, determine which data in `<stateDirs.pages>/<stateId>/README.md` these main static mockups correspond to, and in the React Component in `<stateDirs.pages>/<stateId>/<mainFileName>`, retrieve the data from props and replace the static data.
 
-Then, handle all "secondary static mockup" files (tsx & less) temporarily stored in Step 3.1, divided into 3 types:
+Then, handle all "secondary static mockup" files (tsx & less) temporarily stored in Step 3.1, divided into 2 types:
 
-1. First handle non-storyboard / non-toast: compare this secondary static mockup with the nearest previous main static mockup to identify differences, then implement these differences into the tsx and less files with corresponding scene names in `<stateDirs.pages>/<stateId>/`
-2. Handle storyboard: this is actually an interaction demonstration of a certain part in the main/secondary static mockup. Modify the tsx and less files with corresponding scene names in `<stateDirs.pages>/<stateId>/` based on the demonstration.
-3. Handle toast: just need to know the content of the toast, then clarify under what circumstances this toast is triggered, and add this toast trigger in the tsx and less files with corresponding scene names in `<stateDirs.pages>/<stateId>/`
+1. First handle non-toast: compare this secondary static mockup with the nearest previous main static mockup to identify differences, then implement these differences into the tsx and less files with corresponding scene names in `<stateDirs.pages>/<stateId>/`
+2. Handle toast: just need to know the content of the toast, then clarify under what circumstances this toast is triggered, and add this toast trigger in the tsx and less files with corresponding scene names in `<stateDirs.pages>/<stateId>/`
 
 For step details, refer to `./references/step32-gen-main-scene.md`.
 
-### Step 3.3: Replace matched static code with components and adapt width/height styles
+### Step 3.3: Replace matched static code with components
 
 **IMPORTANT: You MUST use a subagent for each tsx & less pair. Do NOT read scene file contents in the main context. You MUST pass the scene's tsx and less file paths as well as the `componentMappingFileName` path to the subagent.**
 
 For each scene's tsx & less pair under `stateDirs.pages` (excluding index.tsx and index.less), the subagent should perform the following two tasks together:
 
 1. **Component mapping replacement**: Read the `componentMappingFileName` file to obtain the mapping between static code and components. Replace the matched static code in the scene with the corresponding components to ensure the page has the required capabilities.
-
-2. **Width and height style adaptation**: Since the styles provided by the design draft use fixed sizes, adapt the width and height for the scene's code. In general, for components displayed in the normal page layout flow, set `width: 100%` and `height: 100%` to ensure proper display in containers of different sizes. For drawer-type components, keep the original width and set `height: 95%` to ensure sufficient height.
 
 ### Step 3.4: Clear temporary files
 

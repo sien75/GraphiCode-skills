@@ -35,10 +35,10 @@ Read `./references/options.md` from this skill's directory to get the available 
 * **flowDirs**
 * **algorithmDirs**
 * **stateDirs**
-* **typeDirs**
 * **projectConfig**
 * **mainFileName**
 * **testFileName**
+* **typeFileName**
 * **testCommand**
 * **others**
 
@@ -64,6 +64,7 @@ cat << 'EOF' > ./graphig.md
 * **entryDir**: <entryDir>
 * **mainFileName**: <mainFileName>
 * **testFileName**: <testFileName>
+* **typeFileName**: <typeFileName>
 * **testCommand**: <testCommand>
 * **others**: xxx
 
@@ -78,16 +79,12 @@ cat << 'EOF' > ./graphig.md
 ## stateDirs
 
 * `<dir1>`: <description1>
-
-## typeDirs
-
-* `<dir1>`: <description1>
 EOF
 ```
 
 ## 4. Create directory structure
 
-For each directory (key) in flowDirs/algorithmDirs/stateDirs/typeDirs:
+For each directory (key) in flowDirs/algorithmDirs/stateDirs:
 
 1. Create the directory (including parent directories if needed).
 2. Create an empty dir config file inside it:
@@ -99,8 +96,6 @@ mkdir -p <flowDir> && echo '# flow' > <flowDir>/flow.graphig.md
 mkdir -p <algorithmDir> && echo '# algorithm' > <algorithmDir>/algorithm.graphig.md
 # for each stateDir
 mkdir -p <stateDir> && echo '# state' > <stateDir>/state.graphig.md
-# for each typeDir
-mkdir -p <typeDir> && echo '# type' > <typeDir>/type.graphig.md
 ```
 
 ## 5. Copy utility files

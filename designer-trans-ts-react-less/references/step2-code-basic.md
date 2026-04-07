@@ -50,13 +50,20 @@ The login page verification code countdown uses the loginCodeCountdown state.
 The forget password page verification code countdown uses the forgetPasswordCodeCountdown state.
 ```
 
-## Type Definition Example
+## Type File
 
-Type is defined in the "typeDirs" directory. Refer to `graphig.md` to get the "typeDirs" directory, and find the corresponding type declaration based on the type ID. Assuming typeDir is `src/types`, you should look for `src/types/LoginPageStatus/index.ts`:
+All types used by the page are defined in a single file at `<stateDirs.pages>/<stateId>/<typeFileName>`, where `typeFileName` is declared in `graphig.md`. All scene files and `<mainFileName>` import types from this file.
+
+Assuming `typeFileName` is `types.ts`, the type file is `src/pages/login/types.ts`:
 
 ```ts
-type LoginPageStatus = 'login' | 'loginCodeSended' | 'loginLogging' | 'terms' | 'setNewPassword' | 'forgetPassword' | 'forgetPasswordCodeSended' | 'forgetPasswordSetNewPassword';
-export default LoginPageStatus;
+export type LoginPageStatus = 'login' | 'loginCodeSended' | 'loginLogging' | 'terms' | 'setNewPassword' | 'forgetPassword' | 'forgetPasswordCodeSended' | 'forgetPasswordSetNewPassword';
+```
+
+All scene files (e.g., `Page1.tsx`, `Page2.tsx`) and `<mainFileName>` should import types from this file:
+
+```ts
+import LoginPageStatus from './types';
 ```
 
 ## Mapping Relationship between State Class and README
@@ -99,7 +106,7 @@ The connect function is the key to linking State Class and React component. Pass
 
 ```tsx
 import React from 'react';
-import LoginPageStatus from '<typeDir>/LoginPageStatus';
+import { LoginPageStatus } from './types';
 import { Subscription, State, getArg, connect } from '@/graphicode-utils';
 import { Observable } from 'rxjs';
 

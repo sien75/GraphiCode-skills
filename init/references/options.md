@@ -23,10 +23,10 @@
 * flowDirs: `src/flows`
 * algorithmDirs: `src/algorithms`
 * stateDirs: `src/pages` (for pages), `src/states` (for global state management), `src/constants` (for static configuration and constant values)
-* typeDirs: `src/types`
 * projectConfig: `package.json`
 * mainFileName: `index.ts`, `index.tsx` ( for React component )
 * testFileName: `index.test.ts`
+* typeFileName: `types.ts`
 * testCommand: `bun test {testFile}`
 * others
   * componentDirs: `src/components`
