@@ -29,27 +29,15 @@ Ask the user for the following fields (all at once):
 
 ## 2. Gather more info
 
-Read `./references/options.md` from this skill's directory to get the available devEnv/runtimeEnv options for the chosen runtime and their corresponding values:
-
-* **entryDir**
-* **flowDirs**
-* **algorithmDirs**
-* **stateDirs**
-* **projectConfig**
-* **mainFileName**
-* **testFileName**
-* **typeFileName**
-* **testCommand**
-* **others**
+Read `./references/config-example.md` from this skill's directory to get the typical language & devEnv & runtimeEnv options for the chosen runtime and their corresponding values.
 
 If the user's provided `language`, `devEnv`, or `runtimeEnv` does not match any entry in the reference file, prompt the user to revise their input before proceeding.
 
-First show the default value in option.md, and ask user if want to change some value.
+First show the typical value in config-example, and ask user if want to change some value.
 
 After user confirmed, do the next step.
 
 ## 3. Create graphig.md
-
 
 Create `graphig.md` in the project root, combining the user's input from step 1 and the values looked up from the language reference file:
 
@@ -57,34 +45,24 @@ Create `graphig.md` in the project root, combining the user's input from step 1 
 cat << 'EOF' > ./graphig.md
 # <appName>
 
-* **language**: <language>
-* **devEnv**: <devEnv>
-* **runtimeEnv**: <runtimeEnv>
-* **projectConfig**: <projectConfig>
-* **entryDir**: <entryDir>
-* **mainFileName**: <mainFileName>
-* **testFileName**: <testFileName>
-* **typeFileName**: <typeFileName>
-* **testCommand**: <testCommand>
-* **others**: xxx
+xx config:
 
-## flowDirs
+* xxx
+* xxx
+* xxx
 
-* `<dir1>`: <description1>
+xx config:
 
-## algorithmDirs
+* xxx
+* xxx
+* xxx
 
-* `<dir1>`: <description1>
-
-## stateDirs
-
-* `<dir1>`: <description1>
 EOF
 ```
 
 ## 4. Create directory structure
 
-For each directory (key) in flowDirs/algorithmDirs/stateDirs:
+For each directory in flowDirs/algorithmDirs/stateDirs in `graphig.md`:
 
 1. Create the directory (including parent directories if needed).
 2. Create an empty dir config file inside it:
@@ -100,14 +78,14 @@ mkdir -p <stateDir> && echo '# state' > <stateDir>/state.graphig.md
 
 ## 5. Copy utility files
 
-Copy the language-specific utility files from this skill's assets directory to the project's `src/graphicode-utils/` directory:
+Copy the language-specific utility files from this skill's assets directory to the project's <utilsDir>:
 
 ```sh
 mkdir -p ./graphicode-utils
-cp <this-skill-dir>/assets/<language>/* ./src/graphicode-utils/
+cp <this-skill-dir>/assets/<language>/* <utilsDir>
 ```
 
-Replace `<language>` with the value of the `language` field in `graphig.md` (e.g., `TypeScript`).
+Replace `<language>` and `<utilsDir>` with the value of corresponding value in `graphig.md`.
 
 ## 6. Confirm to the user
 

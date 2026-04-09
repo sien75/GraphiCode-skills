@@ -28,5 +28,13 @@ Assuming the page structure is like this:
 
 You should delete all the tsx and associated less for the pageFrame framework part, including Content Area Background / Sidebar / Navigation / Expand Button.
 
-Save all modified static mockup results by their original names to `./tmp`.
+**Browser-compatible format conversion:**
+The output files must be browser-compatible. When saving, apply the following transformations:
+- Remove all `import` statements (e.g., `import React from 'react'`, `import styles from './xxx.less'`)
+- Remove all `export` statements (e.g., `export default Xxx`)
+- Convert CSS Modules usage to plain className strings: `className={styles.xxx}` → `className="xxx"`
+- Keep the component as a `const` declaration (e.g., `const Page1: React.FC<...> = ...`)
+- Add `window.ComponentName = ComponentName` at the end of the file
+
+Save all modified static mockup results by their original names to `./.tmp`.
 ```

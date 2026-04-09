@@ -29,7 +29,7 @@ export function connect<S extends Subscription>(
         });
 
       // Then fetch initial state
-      stateInstance.getState({ key: 'tag', value: eventName });
+      stateInstance.getState();
 
       return () => {
         subscription.unsubscribe();
