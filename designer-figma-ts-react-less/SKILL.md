@@ -50,9 +50,9 @@ The README contains precise descriptions of the page functionality, as well as t
 
 After gathering this information, you need to generate a browser-runnable `index.html` at `<playgroundDir>/<stateId>/index.html`. This file contains:
 
-1. **CDN scripts**: React, ReactDOM, Babel standalone, Less.js (no UI library at this stage — that comes in Step 3.3)
-2. **Type definitions**: Inline in the html, derived from the README's state section
-3. **Mock data**: Multiple named datasets covering every scenario in the Data-View-Mapping section, plus edge cases (empty strings, long strings, boundary numbers). Each dataset has a kebab-case name.
+1. **CDN scripts**: React, ReactDOM, Babel standalone, Less.js (no UI library at this stage — that comes in Step 3.3). Less `<link>` tags must come **before** the Less.js script tag.
+2. **Type definitions**: As comments only (no actual TS syntax), derived from the README's state section
+3. **Mock data**: Plain JavaScript (no TS generics). Multiple named datasets covering every scenario in the Data-View-Mapping section, plus edge cases (empty strings, long strings, boundary numbers). Each dataset has a kebab-case name.
 4. **URL query parsing**: Read `?name=xxx` from URL to select which mock dataset to use, defaulting to the first one
 5. **App component**: Assembles all scene components and passes the selected mock data as `data` prop
 6. **ReactDOM.render**: Mounts the App
@@ -123,6 +123,14 @@ For each scene's tsx & less pair under `playgroundDir` (excluding index.html), t
 2. **Component replacement**: Verify that matched static code has been properly replaced with components as defined in `componentMappingFileName`.
 3. **Design spec compliance**: Check that styles conform to the design specification defined in `designSpecFileName`. Fix any deviations.
 
+## Step 5: Browser verification
+
+After static review, verify the page actually renders in a browser. Static code review cannot catch global scope conflicts between `<script>` tags, Less.js compilation failures, asset path resolution issues, or Babel standalone parsing limitations.
+
+First, detect or install a static file server (e.g., `local-web-server`), start it in `<playgroundDir>/<stateId>/` as a background task. Then use `chrome-devtools` MCP tools to check **every** mock data scenario: navigate, check console errors, check network requests (no 404s), take a screenshot. Fix any issues and re-verify until all scenarios pass. Finally, stop the server.
+
+Refer to `./references/step5-browser-verify.md` for the detailed procedure.
+
 # Best Practice: One Module Per Conversation
 
 Before starting, **remind the user**: it is recommended to implement only **one page module** per conversation. If multiple modules need to be implemented, suggest splitting into separate conversations to save context and avoid interference.
@@ -133,10 +141,12 @@ Before starting, **remind the user**: it is recommended to implement only **one 
 
 1. **No import/export**: tsx files must NOT use `import` or `export`. Components are attached to `window` (e.g., `window.Page1 = Page1`).
 2. **No CSS Modules**: Use plain className strings (e.g., `className="loginPage"`) instead of `className={styles.loginPage}`.
-3. **React from global**: Use `React`, `ReactDOM` from global scope (loaded via CDN). Destructure as needed: `const { useState, useEffect } = React`.
+3. **React from global — destructure INSIDE the component**: Use `React`, `ReactDOM` from global scope (loaded via CDN). Destructure `React` and UI library globals **inside** the component function body, NOT at the top level of the file. Multiple scene files share the same global `<script>` scope, so top-level `const` declarations will collide (e.g., `Identifier 'useState' has already been declared`).
 4. **Events via console.log**: Use `console.log(eventId, payload)` to log UI interaction events for debugging.
-5. **Props format**: Scene components receive `{ data }`.
-6. **Types inline**: Type definitions are placed inline in the `index.html` script block, not in separate files.
+5. **Props format**: Scene components receive `{ data }` with plain untyped destructuring.
+6. **No TypeScript syntax in scene tsx files**: Do NOT use TypeScript `interface`, `type`, or generic type annotations in scene tsx files. Babel standalone's in-browser TS support is limited and unreliable. Use plain JavaScript with untyped props.
+7. **No TypeScript in index.html inline script**: The inline `<script type="text/babel">` in index.html must use plain JavaScript only. Type definitions are conceptual guidance expressed as **comments**, not actual TS syntax. Do NOT use `interface`, `type`, `Record<string, ...>`, or non-null assertions (`!`).
+8. **Asset paths must be local**: Copy required assets from `<assetDirs>` into `<playgroundDir>/<stateId>/assets/` and reference them as `./assets/filename` in scene tsx files. Do NOT use relative paths pointing outside the playground directory (e.g., `../../src/assets/`), as static file servers cannot serve files outside their root.
 
 ## Less Nesting Rule
 

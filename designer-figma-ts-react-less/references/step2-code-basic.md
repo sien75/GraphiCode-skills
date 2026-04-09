@@ -79,9 +79,9 @@ All output files go to `<playgroundDir>/<stateId>/`:
 
 Generate the `index.html` at `<playgroundDir>/<stateId>/index.html`. It contains:
 - CDN scripts for React, ReactDOM, Babel standalone, Less.js
-- `<style type="text/less">` importing all scene less files
+- `<link rel="stylesheet/less">` tags for all scene less files, placed **before** the Less.js script
 - `<script type="text/babel" src="...">` loading all scene tsx files
-- Inline `<script type="text/babel">` with: type definitions, mock data, URL query parsing, App component, ReactDOM.render
+- Inline `<script type="text/babel">` with: mock data (plain JS, no TS syntax), URL query parsing, App component, ReactDOM.render
 
 **Important**: Do NOT include any UI library (antd, etc.) CDN references at this stage. UI library references will be added later in Step 3.3 after reading the component mapping file.
 
@@ -89,39 +89,33 @@ Generate the `index.html` at `<playgroundDir>/<stateId>/index.html`. It contains
 <!DOCTYPE html>
 <html>
 <head>
-  <script>less = { async: true }</script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/less.js/4.2.0/less.min.js"></script>
-
   <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <style type="text/less">
-    @import url('./Page1.less');
-    @import url('./Page2.less');
-    @import url('./Page3.less');
-  </style>
+  <!-- Less files: use <link> tags BEFORE less.js script -->
+  <link rel="stylesheet/less" type="text/css" href="./Page1.less" />
+  <link rel="stylesheet/less" type="text/css" href="./Page2.less" />
+  <link rel="stylesheet/less" type="text/css" href="./Page3.less" />
+  <script>less = { env: 'development' }</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/less.js/4.2.0/less.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
 
-  <script type="text/babel" src="./Page1.tsx" data-presets="react,typescript"></script>
-  <script type="text/babel" src="./Page2.tsx" data-presets="react,typescript"></script>
-  <script type="text/babel" src="./Page3.tsx" data-presets="react,typescript"></script>
+  <script type="text/babel" src="./Page1.tsx" data-presets="react"></script>
+  <script type="text/babel" src="./Page2.tsx" data-presets="react"></script>
+  <script type="text/babel" src="./Page3.tsx" data-presets="react"></script>
 
-  <script type="text/babel" data-presets="react,typescript">
-    // === Type Definitions ===
-    type LoginPageStatus = 'login' | 'loginCodeSended' | 'loginLogging' | 'terms' | 'setNewPassword' | 'forgetPassword' | 'forgetPasswordCodeSended' | 'forgetPasswordSetNewPassword'
+  <script type="text/babel" data-presets="react">
+    // === Type Definitions (comments only — no actual TS syntax) ===
+    // LoginPageStatus: 'login' | 'loginCodeSended' | 'loginLogging' | 'terms' | 'setNewPassword' | 'forgetPassword' | 'forgetPasswordCodeSended' | 'forgetPasswordSetNewPassword'
+    // MockData shape: { status, email, loginCodeCountdown, forgetPasswordCodeCountdown }
 
     // === Mock Data ===
     // Define multiple mock datasets covering all scenarios from README's Data and View Mapping,
     // plus edge cases (empty strings, long strings, boundary numbers, etc.)
-    const mockDataMap: Record<string, {
-      status: LoginPageStatus
-      email: string
-      loginCodeCountdown: number
-      forgetPasswordCodeCountdown: number
-    }> = {
+    const mockDataMap = {
       'login-default': {
         status: 'login',
         email: '',
@@ -197,7 +191,7 @@ Generate the `index.html` at `<playgroundDir>/<stateId>/index.html`. It contains
     const data = mockDataMap[mockName] || mockDataMap[Object.keys(mockDataMap)[0]]
 
     // === App Component ===
-    const App: React.FC = () => {
+    const App = () => {
       return (
         <div>
           <Page1 data={data} />
@@ -207,7 +201,7 @@ Generate the `index.html` at `<playgroundDir>/<stateId>/index.html`. It contains
       )
     }
 
-    ReactDOM.createRoot(document.getElementById('root')!).render(<App />)
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />)
   </script>
 </body>
 </html>
@@ -236,8 +230,11 @@ Scene tsx files are loaded via `<script type="text/babel" src="...">` in index.h
  * page1: 1-1
  */
 
-const Page1: React.FC<{ data: any }> = (props) => {
+const Page1 = (props) => {
   const { data } = props
+  // Destructure React hooks and UI library globals INSIDE the component,
+  // NOT at top level (multiple scene files share the same global scope)
+  const { useState, useEffect } = React
 
   // TODO: render JSX by data
   // Use className as plain strings, NOT CSS Modules
@@ -250,7 +247,7 @@ window.Page1 = Page1
 
 ### Scene Less File Example
 
-Less files use plain nested class selectors (NOT CSS Modules). They are imported by `<style type="text/less">` in index.html.
+Less files use plain nested class selectors (NOT CSS Modules). They are imported via `<link rel="stylesheet/less">` in index.html.
 
 ```less
 .page1 {
