@@ -46,7 +46,8 @@ filename config:
 * typeFileName: `types.ts`
 * testReportFileName: `testReport.md`
 * componentMappingFileName: `COMPONENT-MAPPING.md`
-* designSpecFileName: `DESIGN_PSEC.md`
+* designSpecFileName: `DESIGN_SPEC.md`
+* designChangeLogFileName: `DESIGN_CHANGE_LOG.md`
 
 command config:
 

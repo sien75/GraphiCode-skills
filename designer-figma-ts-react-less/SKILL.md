@@ -27,6 +27,7 @@ The following configurations need to be read from `graphig.md`:
 | `componentMappingFileName` | Component mapping filename |
 | `assetDirs` | Asset directory |
 | `designSpecFileName` | Design spec file name |
+| `designChangeLogFileName` | Design change log file name |
 
 ## Step 1: Read the README file
 
@@ -130,6 +131,31 @@ After static review, verify the page actually renders in a browser. Static code 
 First, detect or install a static file server (e.g., `local-web-server`), start it in `<playgroundDir>/<stateId>/` as a background task. Then use `chrome-devtools` MCP tools to check **every** mock data scenario: navigate, check console errors, check network requests (no 404s), take a screenshot. Fix any issues and re-verify until all scenarios pass. Finally, stop the server.
 
 Refer to `./references/step5-browser-verify.md` for the detailed procedure.
+
+## Step 6: Record design change log
+
+After all verification passes, append a change log entry to the `<designChangeLogFileName>` file (read from `graphig.md`) located at the project root. This log helps engineers understand what the designer changed.
+
+For each page state (`stateId`) implemented in this session, append an entry in the following format:
+
+```md
+## <stateId> — <YYYY-MM-DD>
+
+### Added
+- <list of newly created scene files, new mock data scenarios, new assets, etc.>
+
+### Modified
+- <list of modified scenes, updated styles, changed mock data, etc.>
+
+### Deleted
+- <list of removed scenes, deleted files, etc.>
+```
+
+Rules:
+- **Append only** — do not overwrite or reformat existing entries in the file. Create the file if it does not exist.
+- Only record changes to playground output files (`<playgroundDir>/<stateId>/`), not intermediate or temp files.
+- Keep descriptions concise: one line per change, focusing on **what** changed and **why** (e.g., "Added ForgotPassword scene for forget-password flow", not "Created ForgotPassword.tsx").
+- If a section (Added/Modified/Deleted) has no entries, omit it.
 
 # Best Practice: One Module Per Conversation
 
