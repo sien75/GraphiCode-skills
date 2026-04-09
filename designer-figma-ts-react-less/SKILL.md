@@ -140,7 +140,7 @@ After all verification passes, append a change log entry to the `<designChangeLo
 For each page state (`stateId`) implemented in this session, append an entry in the following format:
 
 ```md
-## <stateId> — <YYYY-MM-DD>
+## <stateId> — <YYYY-MM-DD HH:mm:ss>
 
 ### Added
 - <list of newly created scene files, new mock data scenarios, new assets, etc.>
@@ -154,9 +154,12 @@ For each page state (`stateId`) implemented in this session, append an entry in 
 
 Rules:
 - **Append only** — do not overwrite or reformat existing entries in the file. Create the file if it does not exist.
+- **Timestamp must be precise to the second** (e.g., `2026-04-09 14:32:07`).
 - Only record changes to playground output files (`<playgroundDir>/<stateId>/`), not intermediate or temp files.
 - Keep descriptions concise: one line per change, focusing on **what** changed and **why** (e.g., "Added ForgotPassword scene for forget-password flow", not "Created ForgotPassword.tsx").
 - If a section (Added/Modified/Deleted) has no entries, omit it.
+
+After writing the change log, **automatically create a git commit** including all modified playground files and the change log file. Use a commit message in the format: `chore: [design] <brief summary of changes>`.
 
 # Best Practice: One Module Per Conversation
 
