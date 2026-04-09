@@ -28,6 +28,7 @@ The following configurations need to be read from `graphig.md`:
 | `assetDirs` | Asset directory |
 | `designSpecFileName` | Design spec file name |
 | `designChangeLogFileName` | Design change log file name |
+| `figmaFileKeyFileName` | File containing Figma file key (default: `<designContextDirs>/basic.md`) |
 
 ## Step 1: Read the README file
 
@@ -128,7 +129,7 @@ For each scene's tsx & less pair under `playgroundDir` (excluding index.html), t
 
 After static review, verify the page actually renders in a browser. Static code review cannot catch global scope conflicts between `<script>` tags, Less.js compilation failures, asset path resolution issues, or Babel standalone parsing limitations.
 
-First, detect or install a static file server (e.g., `local-web-server`), start it in `<playgroundDir>/<stateId>/` as a background task. Then use `chrome-devtools` MCP tools to check **every** mock data scenario: navigate, check console errors, check network requests (no 404s), take a screenshot. Fix any issues and re-verify until all scenarios pass. Finally, stop the server.
+First, detect or install a static file server (e.g., `local-web-server`), start it at the **project root** as a background task (so that asset paths under `<assetDirs>` resolve correctly). Then use `chrome-devtools` MCP tools to check **every** mock data scenario: navigate to `<playgroundDir>/<stateId>/index.html`, check console errors, check network requests (no 404s), take a screenshot. Fix any issues and re-verify until all scenarios pass. Finally, stop the server.
 
 Refer to `./references/step5-browser-verify.md` for the detailed procedure.
 
@@ -172,7 +173,7 @@ Before starting, **remind the user**: it is recommended to implement only **one 
 5. **Props format**: Scene components receive `{ data }` with plain untyped destructuring.
 6. **No TypeScript syntax in scene tsx files**: Do NOT use TypeScript `interface`, `type`, or generic type annotations in scene tsx files. Babel standalone's in-browser TS support is limited and unreliable. Use plain JavaScript with untyped props.
 7. **No TypeScript in index.html inline script**: The inline `<script type="text/babel">` in index.html must use plain JavaScript only. Type definitions are conceptual guidance expressed as **comments**, not actual TS syntax. Do NOT use `interface`, `type`, `Record<string, ...>`, or non-null assertions (`!`).
-8. **Asset paths must be local**: Copy required assets from `<assetDirs>` into `<playgroundDir>/<stateId>/assets/` and reference them as `./assets/filename` in scene tsx files. Do NOT use relative paths pointing outside the playground directory (e.g., `../../src/assets/`), as static file servers cannot serve files outside their root.
+8. **Asset paths**: Reference assets directly from `<assetDirs>` using a relative path from the scene file's location (e.g., `../../<assetDirs>/login/logo.png`). Do NOT copy assets into the playground directory. When starting the static file server in Step 5, serve from the **project root** (not from `<playgroundDir>/<stateId>/`) so that asset paths resolve correctly.
 
 ## Less Nesting Rule
 

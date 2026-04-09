@@ -45,19 +45,23 @@ filename config:
 * testFileName: `index.test.ts`
 * typeFileName: `types.ts`
 * testReportFileName: `testReport.md`
-* componentMappingFileName: `COMPONENT-MAPPING.md`
-* designSpecFileName: `DESIGN_SPEC.md`
-* designChangeLogFileName: `DESIGN_CHANGE_LOG.md`
 
 command config:
 
 * testCommand: `vitest`
-* singleFilePlaygroundCommand: `node <utilsDir>/playgrounds/singleFile.js <moduleDir>/<moduleId>`
 
 dependency config:
 
 * projectConfig: `package.json`
 * feMainLibrary: `react`
 * feLibraries: `antd`, `vite`, `vitest`
+
+design config:
+
 * designDraftSource: `figma`
+* figmaFileKeyFileName: `<designContextDirs>/basic.md`
+
+* componentMappingFileName: `COMPONENT-MAPPING.md`
+* designSpecFileName: `DESIGN_SPEC.md`
+* designChangeLogFileName: `DESIGN_CHANGE_LOG.md`
 
