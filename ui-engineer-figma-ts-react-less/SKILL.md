@@ -1,5 +1,5 @@
 ---
-name: graphicode-designer-figma-ts-react-less
+name: graphicode-ui-engineer-figma-ts-react-less
 description: Invoked when user wants to translate Figma designs into standard TypeScript + React + Less components for GraphiCode-managed projects.
 license: See LICENSE file.
 ---
