@@ -41,16 +41,23 @@ You do NOT need to execute these in a fixed order. Respond to the user's request
 
 ## Capability: Generate Entry HTML
 
-Scan all subdirectories under `<playgroundDir>` that contain an `index.html`. Generate a plain HTML file at the project root named `<playgroundDir>.html` (e.g., if `playgroundDir` is `playground`, the file is `playground.html`). This file serves as an index page listing all available playground pages.
+Scan all subdirectories under `<playgroundDir>` that contain an `index.html`. Generate a plain HTML file at the project root named `index.html`. This file serves as an index page listing all available playground pages.
 
-The HTML should be minimal — no styling framework, just raw HTML elements:
+The HTML should be minimal — no styling framework, just raw HTML elements with comfortable spacing:
 
 ```html
 <!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Playground Index</title>
+  <title>Playground</title>
+  <style>
+    body { font-family: sans-serif; padding: 24px; line-height: 2; }
+    h1 { margin-bottom: 16px; }
+    h2 { margin-top: 24px; margin-bottom: 8px; }
+    li { margin-bottom: 8px; }
+    button { margin-left: 6px; }
+  </style>
 </head>
 <body>
   <h1>Playground Index</h1>
@@ -88,7 +95,7 @@ Example: `ws --port 8080` (run from project root)
 
 ```
 Playground server is running at:
-  http://localhost:<port>/<playgroundDir>.html
+  http://localhost:<port>/index.html
 
 Please open the URL in your browser.
 ```

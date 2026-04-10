@@ -101,7 +101,15 @@ Generate the `index.html` at `<playgroundDir>/<stateId>/index.html`. It contains
   <script src="https://cdnjs.cloudflare.com/ajax/libs/less.js/4.2.0/less.min.js"></script>
 </head>
 <body>
-  <div id="root"></div>
+  <!-- Resizable container: drag the right/bottom edge to test different viewport sizes -->
+  <div id="resizable-container" style="width:1280px;min-width:200px;min-height:200px;resize:both;overflow:auto;border:2px dashed #ccc;position:relative;">
+    <div id="root"></div>
+  </div>
+  <style>
+    body { margin: 0; padding: 16px; background: #f5f5f5; }
+    #resizable-container { background: #fff; }
+    #resizable-container::-webkit-resizable { display: block; }
+  </style>
 
   <script type="text/babel" src="./Page1.tsx" data-presets="react"></script>
   <script type="text/babel" src="./Page2.tsx" data-presets="react"></script>

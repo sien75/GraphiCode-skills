@@ -53,11 +53,12 @@ The README contains precise descriptions of the page functionality, as well as t
 After gathering this information, you need to generate a browser-runnable `index.html` at `<playgroundDir>/<stateId>/index.html`. This file contains:
 
 1. **CDN scripts**: React, ReactDOM, Babel standalone, Less.js (no UI library at this stage — that comes in Step 3.3). Less `<link>` tags must come **before** the Less.js script tag.
-2. **Type definitions**: As comments only (no actual TS syntax), derived from the README's state section
-3. **Mock data**: Plain JavaScript (no TS generics). Multiple named datasets covering every scenario in the Data-View-Mapping section, plus edge cases (empty strings, long strings, boundary numbers). Each dataset has a kebab-case name.
-4. **URL query parsing**: Read `?name=xxx` from URL to select which mock dataset to use, defaulting to the first one
-5. **App component**: Assembles all scene components and passes the selected mock data as `data` prop
-6. **ReactDOM.render**: Mounts the App
+2. **Resizable container**: Wrap `#root` in a resizable container (`resize: both; overflow: auto`) with a dashed border, so the designer can drag to test different viewport sizes. Default width 1280px.
+3. **Type definitions**: As comments only (no actual TS syntax), derived from the README's state section
+4. **Mock data**: Plain JavaScript (no TS generics). Multiple named datasets covering every scenario in the Data-View-Mapping section, plus edge cases (empty strings, long strings, boundary numbers). Each dataset has a kebab-case name.
+5. **URL query parsing**: Read `?name=xxx` from URL to select which mock dataset to use, defaulting to the first one
+6. **App component**: Assembles all scene components and passes the selected mock data as `data` prop
+7. **ReactDOM.render**: Mounts the App into `#root` (inside the resizable container)
 
 The detailed example has been placed in `./references/step2-code-basic.md` due to the large file size.
 
