@@ -36,7 +36,6 @@ dir config:
 * designContextDirs: `context/design`
 * productContextDirs: `context/product`
 * assetDirs: `src/assets`
-* playgroundDir: `playground`
 * utilsDir: `src/graphicode-utils`
 
 filename config:

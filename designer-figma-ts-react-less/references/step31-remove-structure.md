@@ -9,8 +9,8 @@ Check the tsx and less files in the `<designContextDirs>/<stateId>` directory. F
 ```md
 Assuming the page structure is like this:
 
-<div className="personalCenter">
-  <div className="pageFrame">
+<div className={styles.personalCenter}>
+  <div className={styles.pageFrame}>
     {/* Content Area Background */}
     {/* Sidebar */}
     {/* Navigation */}
@@ -20,7 +20,7 @@ Assuming the page structure is like this:
   {/* Breadcrumb */}
 
   {/* Main Content Card */}
-  <div className="mainContentCard">
+  <div className={styles.mainContentCard}>
     {/* Header Card */}
     {/* Details Section */}
   </div>
@@ -28,13 +28,12 @@ Assuming the page structure is like this:
 
 You should delete all the tsx and associated less for the pageFrame framework part, including Content Area Background / Sidebar / Navigation / Expand Button.
 
-**Browser-compatible format conversion:**
-The output files must be browser-compatible. When saving, apply the following transformations:
-- Remove all `import` statements (e.g., `import React from 'react'`, `import styles from './xxx.less'`)
-- Remove all `export` statements (e.g., `export default Xxx`)
-- Convert CSS Modules usage to plain className strings: `className={styles.xxx}` → `className="xxx"`
-- Keep the component as a `const` declaration (e.g., `const Page1: React.FC<...> = ...`)
-- Add `window.ComponentName = ComponentName` at the end of the file
+**Keep standard module format:**
+The output files must retain standard TypeScript module format:
+- Keep all `import` statements (e.g., `import React from 'react'`, `import styles from './xxx.less'`)
+- Keep `export default` at the end of the file
+- Keep Less Modules usage: `className={styles.xxx}`
+- Keep the component as a standard React.FC with typed props
 
 Save all modified static mockup results by their original names to `./.tmp`.
 ```

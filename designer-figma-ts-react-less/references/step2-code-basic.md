@@ -1,10 +1,10 @@
 # Code Basic Example
 
-This is a complete code structure example, demonstrating how to implement a page README as browser-runnable mock data and React components.
+This is a complete code structure example, demonstrating how to implement a page README as standard TSX + Less components.
 
 ## README Example
 
-`<stateDirs.pages>/<stateId>/README.md` shows the format of page README (note: README is read from stateDirs.pages, but code is output to playgroundDir), including page method, event, data fields, and data-view mapping.
+`<stateDirs.pages>/<stateId>/README.md` shows the format of page README, including page method, event, data fields, and data-view mapping.
 
 ```md
 # method
@@ -54,211 +54,184 @@ The forget password page verification code countdown uses the forgetPasswordCode
 
 | README Definition | Output Mapping | Description |
 |---|---|---|
-| `state` | Mock data fields | Defines the data shape; generate multiple mock datasets covering all scenarios and edge cases |
-| `method` | Not used | Not needed in playground |
-| `event` | `console.log(eventId, payload)` | Events are logged to console for debugging when triggered by UI interactions |
-| Data and View Mapping | Mock data variants | Each mapping scenario becomes one or more named mock datasets |
+| `state` | State class private fields + type definitions | Defines the data shape; each state field becomes a private field in the State class with a corresponding setter method |
+| `method` | State class public methods | Each method becomes a public setter that updates private state and calls `this._publish()` |
+| `event` | `stateInstance._publish(eventId, payload)` | Events are published via stateInstance when triggered by UI interactions |
+| Data and View Mapping | Scene component conditional rendering | Each mapping scenario drives conditional rendering logic in scene components |
 
 ## Output File Structure
 
-All output files go to `<playgroundDir>/<stateId>/`:
+All output files go to `<stateDirs.pages>/<stateId>/`:
 
 ```
-<playgroundDir>/<stateId>/
-├── index.html          # Entry file, inline App component + mock data
-├── Page1.tsx           # Scene component (attached to window)
-├── Page1.less          # Scene styles (plain class names)
-├── Page2.tsx
-├── Page2.less
+<stateDirs.pages>/<stateId>/
+├── index.tsx           # Entry file: State class + page component + connect wrapper
+├── types.ts            # Type definitions (LoginPageStatus, etc.)
+├── LoginForm.tsx       # Scene component (export default)
+├── LoginForm.less      # Scene styles (Less Modules)
+├── Terms.tsx
+├── Terms.less
 └── ...
 ```
 
-## Example: Implement Login Page index.html and Scene Components
+## Example: Implement Login Page index.tsx and Scene Components
 
-### index.html
+### index.tsx
 
-Generate the `index.html` at `<playgroundDir>/<stateId>/index.html`. It contains:
-- CDN scripts for React, ReactDOM, Babel standalone, Less.js
-- `<link rel="stylesheet/less">` tags for all scene less files, placed **before** the Less.js script
-- `<script type="text/babel" src="...">` loading all scene tsx files
-- Inline `<script type="text/babel">` with: mock data (plain JS, no TS syntax), URL query parsing, App component, ReactDOM.render
+Generate the `index.tsx` at `<stateDirs.pages>/<stateId>/index.tsx`. It contains:
+- Imports for State utilities, scene components, and types
+- State class definition with private state fields, public setter methods, getState(), and on() helper
+- State instantiation and enable
+- Page component receiving `{ data, stateInstance }` and assembling scene components
+- `connect()` wrapper and default export
 
-**Important**: Do NOT include any UI library (antd, etc.) CDN references at this stage. UI library references will be added later in Step 3.3 after reading the component mapping file.
+```tsx
+import { State, Subscription, connect, getArg } from '@/graphicode-utils';
+import React from 'react';
+import { Observable } from 'rxjs';
+import LoginForm from './LoginForm';
+import Terms from './Terms';
+import SetNewPassword from './SetNewPassword';
+import ForgetPassword from './ForgetPassword';
+import { LoginPageStatus } from './types';
 
-```html
-<!DOCTYPE html>
-<html>
-<head>
-  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+// State Class - Manages internal state and logic of login page
+export class LoginPageState extends Subscription implements State {
+  // ========== private state ==========
+  private status: LoginPageStatus = 'login';
+  private email: string = '';
+  private loginCodeCountdown: number = 0;
+  private forgetPasswordCodeCountdown: number = 0;
 
-  <!-- Less files: use <link> tags BEFORE less.js script -->
-  <link rel="stylesheet/less" type="text/css" href="./Page1.less" />
-  <link rel="stylesheet/less" type="text/css" href="./Page2.less" />
-  <link rel="stylesheet/less" type="text/css" href="./Page3.less" />
-  <script>less = { env: 'development' }</script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/less.js/4.2.0/less.min.js"></script>
-</head>
-<body>
-  <!-- Resizable container: drag the right/bottom edge to test different viewport sizes -->
-  <div id="resizable-container" style="width:1280px;min-width:200px;min-height:200px;resize:both;overflow:auto;border:2px dashed #ccc;position:relative;">
-    <div id="root"></div>
-  </div>
-  <style>
-    body { margin: 0; padding: 16px; background: #f5f5f5; }
-    #resizable-container { background: #fff; }
-    #resizable-container::-webkit-resizable { display: block; }
-  </style>
-
-  <script type="text/babel" src="./Page1.tsx" data-presets="react"></script>
-  <script type="text/babel" src="./Page2.tsx" data-presets="react"></script>
-  <script type="text/babel" src="./Page3.tsx" data-presets="react"></script>
-
-  <script type="text/babel" data-presets="react">
-    // === Type Definitions (comments only — no actual TS syntax) ===
-    // LoginPageStatus: 'login' | 'loginCodeSended' | 'loginLogging' | 'terms' | 'setNewPassword' | 'forgetPassword' | 'forgetPasswordCodeSended' | 'forgetPasswordSetNewPassword'
-    // MockData shape: { status, email, loginCodeCountdown, forgetPasswordCodeCountdown }
-
-    // === Mock Data ===
-    // Define multiple mock datasets covering all scenarios from README's Data and View Mapping,
-    // plus edge cases (empty strings, long strings, boundary numbers, etc.)
-    const mockDataMap = {
-      'login-default': {
-        status: 'login',
-        email: '',
-        loginCodeCountdown: 0,
-        forgetPasswordCodeCountdown: 0,
-      },
-      'login-with-email': {
-        status: 'login',
-        email: 'user@example.com',
-        loginCodeCountdown: 0,
-        forgetPasswordCodeCountdown: 0,
-      },
-      'login-code-sended': {
-        status: 'loginCodeSended',
-        email: 'user@example.com',
-        loginCodeCountdown: 59,
-        forgetPasswordCodeCountdown: 0,
-      },
-      'login-logging': {
-        status: 'loginLogging',
-        email: 'user@example.com',
-        loginCodeCountdown: 0,
-        forgetPasswordCodeCountdown: 0,
-      },
-      'terms': {
-        status: 'terms',
-        email: 'user@example.com',
-        loginCodeCountdown: 0,
-        forgetPasswordCodeCountdown: 0,
-      },
-      'set-new-password': {
-        status: 'setNewPassword',
-        email: 'user@example.com',
-        loginCodeCountdown: 0,
-        forgetPasswordCodeCountdown: 0,
-      },
-      'forget-password': {
-        status: 'forgetPassword',
-        email: '',
-        loginCodeCountdown: 0,
-        forgetPasswordCodeCountdown: 0,
-      },
-      'forget-password-code-sended': {
-        status: 'forgetPasswordCodeSended',
-        email: 'user@example.com',
-        loginCodeCountdown: 0,
-        forgetPasswordCodeCountdown: 45,
-      },
-      'forget-password-set-new-password': {
-        status: 'forgetPasswordSetNewPassword',
-        email: 'user@example.com',
-        loginCodeCountdown: 0,
-        forgetPasswordCodeCountdown: 0,
-      },
-      // Edge cases
-      'boundary-long-email': {
-        status: 'login',
-        email: 'very-long-email-address-that-might-overflow@extremely-long-domain-name.com',
-        loginCodeCountdown: 0,
-        forgetPasswordCodeCountdown: 0,
-      },
-      'boundary-countdown-max': {
-        status: 'loginCodeSended',
-        email: 'user@example.com',
-        loginCodeCountdown: 120,
-        forgetPasswordCodeCountdown: 120,
-      },
+  // ========== public methods ==========
+  public setPageStatus(...args: { key: string; value: any }[]) {
+    const status = getArg<LoginPageStatus>(args, 'status');
+    if (status) {
+      this.status = status;
+      this._publish('LoginPageState.__stateChange', { status });
     }
+  }
 
-    // === URL Query Parsing ===
-    const params = new URLSearchParams(window.location.search)
-    const mockName = params.get('name') || Object.keys(mockDataMap)[0]
-    const data = mockDataMap[mockName] || mockDataMap[Object.keys(mockDataMap)[0]]
-
-    // === App Component ===
-    const App = () => {
-      return (
-        <div>
-          <Page1 data={data} />
-          <Page2 data={data} />
-          <Page3 data={data} />
-        </div>
-      )
+  public setDefaultEmail(...args: { key: string; value: any }[]) {
+    const email = getArg<string>(args, 'email');
+    if (email !== undefined) {
+      this.email = email;
+      this._publish('LoginPageState.__stateChange', { email });
     }
+  }
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />)
-  </script>
-</body>
-</html>
+  public setLoginCodeCountdown(...args: { key: string; value: any }[]) {
+    const countdown = getArg<number>(args, 'countdown');
+    if (countdown !== undefined) {
+      this.loginCodeCountdown = countdown;
+      this._publish('LoginPageState.__stateChange', {
+        loginCodeCountdown: countdown,
+      });
+    }
+  }
+
+  public setForgetPasswordCodeCountdown(...args: { key: string; value: any }[]) {
+    const countdown = getArg<number>(args, 'countdown');
+    if (countdown !== undefined) {
+      this.forgetPasswordCodeCountdown = countdown;
+      this._publish('LoginPageState.__stateChange', {
+        forgetPasswordCodeCountdown: countdown,
+      });
+    }
+  }
+
+  public getState() {
+    this._publish('LoginPageState.__stateChange', {
+      status: this.status,
+      email: this.email,
+      loginCodeCountdown: this.loginCodeCountdown,
+      forgetPasswordCodeCountdown: this.forgetPasswordCodeCountdown,
+    });
+  }
+
+  // ========== subscription helper ==========
+  public on(eventId: string): Observable<any> {
+    return this._subscribe(eventId);
+  }
+}
+
+const loginPageState = new LoginPageState();
+
+loginPageState.enable();
+
+const LoginPage: React.FC<{
+  data: any;
+  stateInstance: LoginPageState;
+}> = (props) => {
+  const { data, stateInstance } = props;
+
+  return (
+    <div>
+      <LoginForm data={data} stateInstance={stateInstance} />
+      <Terms data={data} stateInstance={stateInstance} />
+      <SetNewPassword data={data} stateInstance={stateInstance} />
+      <ForgetPassword data={data} stateInstance={stateInstance} />
+    </div>
+  );
+};
+
+const LoginPageWithState = connect(
+  loginPageState,
+  'LoginPageState.__stateChange',
+  LoginPage,
+);
+
+export default LoginPageWithState;
 ```
 
-### Mock Data Guidelines
+### Key Patterns
 
-When generating mock data from README:
+When generating index.tsx from README:
 
-1. **One dataset per Data-View-Mapping entry**: Each `{ status: 'xxx' }` mapping in the README should have at least one mock dataset.
-2. **Edge cases**: Add datasets for boundary conditions:
-   - Empty strings for text fields
-   - Very long strings for overflow testing
-   - Maximum/minimum values for numbers
-   - Special characters in text fields
-3. **Naming convention**: Use kebab-case names that describe the scenario (e.g., `'login-default'`, `'boundary-long-email'`).
-4. **Type the mock data**: Use a typed `Record` with the state shape from README to ensure all fields are present.
+1. **State class naming**: Use `<PageName>State` (e.g., `LoginPageState`).
+2. **Private fields**: One per `state` entry in README, with sensible defaults.
+3. **Public methods**: One per `method` entry in README. Each extracts args via `getArg()`, updates the private field, and calls `this._publish('<ClassName>.__stateChange', { field: value })`.
+4. **getState()**: Publishes all private state fields at once.
+5. **on()**: Returns `this._subscribe(eventId)` for external subscription.
+6. **Page component**: Receives `{ data, stateInstance }` and passes both to every scene component.
+7. **connect()**: Wraps with `connect(stateInstance, '<ClassName>.__stateChange', Component)`.
 
 ### Scene TSX File Example
 
-Scene tsx files are loaded via `<script type="text/babel" src="...">` in index.html. They must NOT use import/export.
+Scene tsx files use standard import/export and Less Modules.
 
 ```tsx
 /*
  * corresponded figma node-ids
- * page1: 1-1
+ * loginForm: 1-1
  */
 
-const Page1 = (props) => {
-  const { data } = props
-  // Destructure React hooks and UI library globals INSIDE the component,
-  // NOT at top level (multiple scene files share the same global scope)
-  const { useState, useEffect } = React
+import React, { useState } from 'react';
+import styles from './LoginForm.less';
 
-  // TODO: render JSX by data
-  // Use className as plain strings, NOT CSS Modules
-  // Use console.log for events
-  return null
+interface LoginFormProps {
+  data: any;
+  stateInstance: any;
 }
 
-window.Page1 = Page1
+const LoginForm: React.FC<LoginFormProps> = (props) => {
+  const { data, stateInstance } = props;
+
+  // TODO: render JSX by data
+  // Use styles.xxx for className
+  // Use stateInstance._publish(eventId, payload) for events
+  return null;
+};
+
+export default LoginForm;
 ```
 
 ### Scene Less File Example
 
-Less files use plain nested class selectors (NOT CSS Modules). They are imported via `<link rel="stylesheet/less">` in index.html.
+Less files use nested class selectors and are imported as Less Modules (`styles.xxx`).
 
 ```less
-.page1 {
+.loginForm {
   .logoArea {
     /* styles */
   }
@@ -268,4 +241,4 @@ Less files use plain nested class selectors (NOT CSS Modules). They are imported
 }
 ```
 
-Save the index.html to `<playgroundDir>/<stateId>/index.html`.
+Save the index.tsx to `<stateDirs.pages>/<stateId>/index.tsx`.

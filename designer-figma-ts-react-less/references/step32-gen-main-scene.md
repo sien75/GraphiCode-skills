@@ -15,7 +15,7 @@ page2: 1-2
 drawer1: 1-4
 ```
 
-Then you can copy `Page1.tsx`, `Page1.less`, `Page2.tsx`, `Page2.less`, `Drawer1.tsx`, `Drawer1.less` from `<designContextDirs>/<stateId>/` to `<playgroundDir>/<stateId>/` based on the previously temporarily stored files using the `cp` command.
+Then you can copy `Page1.tsx`, `Page1.less`, `Page2.tsx`, `Page2.less`, `Drawer1.tsx`, `Drawer1.less` from `<designContextDirs>/<stateId>/` to `<stateDirs.pages>/<stateId>/` based on the previously temporarily stored files using the `cp` command.
 
 Generally, you just need to copy the temporarily stored files using the `cp` command without reading files to consume context.
 
@@ -28,57 +28,42 @@ After copying, add a comment block at the top of each scene tsx file to record w
  */
 ```
 
-Then update `<playgroundDir>/<stateId>/index.html` to include these scenes. Add `<style type="text/less">` imports for each less file and `<script type="text/babel" src="...">` for each tsx file, and reference the components in the App component:
+Then update `<stateDirs.pages>/<stateId>/index.tsx` to import these scene components and assemble them in the page component:
 
-```html
-<!-- In <head>, add less imports -->
-<style type="text/less">
-  @import url('./Page1.less');
-  @import url('./Page2.less');
-  @import url('./Drawer1.less');
-</style>
+```tsx
+// Add imports at the top
+import Page1 from './Page1';
+import Page2 from './Page2';
+import Drawer1 from './Drawer1';
 
-<!-- In <body>, before the inline script, add tsx imports -->
-<script type="text/babel" src="./Page1.tsx" data-presets="react,typescript"></script>
-<script type="text/babel" src="./Page2.tsx" data-presets="react,typescript"></script>
-<script type="text/babel" src="./Drawer1.tsx" data-presets="react,typescript"></script>
+// In the page component
+const LoginPage: React.FC<{
+  data: any;
+  stateInstance: LoginPageState;
+}> = (props) => {
+  const { data, stateInstance } = props;
 
-<!-- In the inline script's App component -->
-const App: React.FC = () => {
   return (
     <div>
-      <Page1 data={data} />
-      <Page2 data={data} />
-      <Drawer1 data={data} />
+      <Page1 data={data} stateInstance={stateInstance} />
+      <Page2 data={data} stateInstance={stateInstance} />
+      <Drawer1 data={data} stateInstance={stateInstance} />
     </div>
-  )
-}
+  );
+};
 ```
 
 ## Apply Main Scene Data from README to Static React Component
 
 The React Component generated from main static mockup is still static. Now you need to assign real props parameters to designated positions in TSX.
 
-In `<playgroundDir>/<stateId>/index.html`, the App component passes `data` to each scene:
+In `<stateDirs.pages>/<stateId>/index.tsx`, the page component passes both `data` and `stateInstance` to each scene:
 
-**IMPORTANT: You MUST pass the complete `data` object to every scene component. Do NOT selectively pass a subset of data fields (e.g., `{ status, email }`) to different scenes. Each scene component receives the full `data` and internally decides which fields to use.** The principle "NOT all data and event list need to be used" applies INSIDE scene components, NOT at the index.html level.
-
-```html
-<!-- In the inline script -->
-const App: React.FC = () => {
-  return (
-    <div>
-      <Page1 data={data} />
-      <Page2 data={data} />
-      <Drawer1 data={data} />
-    </div>
-  )
-}
-```
+**IMPORTANT: You MUST pass the complete `data` object and `stateInstance` to every scene component. Do NOT selectively pass a subset of data fields (e.g., `{ status, email }`) to different scenes. Each scene component receives the full `data` and `stateInstance`, and internally decides which fields to use.** The principle "NOT all data and event list need to be used" applies INSIDE scene components, NOT at the index.tsx level.
 
 Then start a subagent for each scene, and inject into the subagent context:
 
-1. tsx and less file paths for that scene (in `<playgroundDir>/<stateId>/`)
+1. tsx and less file paths for that scene (in `<stateDirs.pages>/<stateId>/`)
 2. state and event parts from README
 3. Related type details
 
@@ -90,18 +75,18 @@ Read the static React component and associate it with props data and events.
 React path: {xxx} (supplied by main agent).
 less path: {xxx} (supplied by main agent).
 
-**Browser-compatible format rules:**
-- No import/export. The component is attached to window at the end: `window.Page1 = Page1`
-- No CSS Modules. Use plain className strings: `className="loginPage"` (NOT `className={styles.loginPage}`)
-- React is available globally. Destructure as needed: `const { useState, useEffect } = React`
-- Props format is `{ data }` only.
-- Assets (images, icons, etc.) are referenced directly via relative path: `<img src="../../<assetDirs>/<stateId>/logo.png" />`. Do NOT use `import` for assets.
+**Standard module format rules:**
+- Use standard import/export. The component uses `export default` at the end.
+- Use Less Modules: `import styles from './xxx.less'` and `className={styles.xxx}`
+- React is imported at the top: `import React, { useState, useEffect } from 'react'`
+- Props format is `{ data, stateInstance }`.
+- Assets (images, icons, etc.) are referenced via import or relative path.
 
-props follows the { data } format.
+props follows the { data, stateInstance } format.
 
 where data type is: {xxx} (supplied by main agent, i.e., state part from README).
 
-Events are logged via `console.log(eventId, payload)`. The available event IDs and their payload types are: {xxx} (supplied by main agent, i.e., event part from README).
+Events are published via `stateInstance._publish(eventId, payload)`. The available event IDs and their payload types are: {xxx} (supplied by main agent, i.e., event part from README).
 
 Related types are: {xxx} (supplied by main agent).
 
@@ -112,27 +97,26 @@ In the specific scene code (e.g., Page1.tsx), assign real props parameters to de
 Original TSX:
 
 // other code
-<div className="name">Jammy</div>
+<div className={styles.name}>Jammy</div>
 <button>edit</button>
 // other code
 
 Replaced TSX:
 
 // other code
-const { data } = props
+const { data, stateInstance } = props
 const { name, canEdit } = data
 const onEdit = () => {
-   console.log('Page1.editClick', {})
+   stateInstance._publish('Page1.editClick', {})
 }
 // other code
-<div className="name">{name}</div>
+<div className={styles.name}>{name}</div>
 <button onClick={onEdit} disabled={!canEdit}>edit</button>
 // other code
 
-The less file uses plain class names (NOT CSS Modules). Ensure all CSS classes in tsx have corresponding definitions in the less file.
+The less file uses Less Modules (`styles.xxx`). Ensure all CSS classes in tsx use `styles.xxx` and have corresponding definitions in the less file.
 
-Write the changes back to tsx and less files. Make sure the component is attached to window at the end of the tsx file:
-`window.Page1 = Page1`
+Write the changes back to tsx and less files.
 ```
 
 ## Handle non-toast secondary static mockup
@@ -155,7 +139,7 @@ The main static mockup associated with page1 loading secondary static mockup is 
 
 After finding it, similarly start a subagent and inject:
 
-1. tsx and less file paths for main scene (in `<playgroundDir>/<stateId>/`)
+1. tsx and less file paths for main scene (in `<stateDirs.pages>/<stateId>/`)
 2. tsx and less file paths for secondary scene (in `./.tmp/`)
 3. state and event parts from README
 4. Related type details
@@ -176,18 +160,18 @@ Secondary scene
 React path: {xxx} (supplied by main agent).
 less path: {xxx} (supplied by main agent).
 
-**Browser-compatible format rules:**
-- No import/export. The component is attached to window at the end: `window.Page1 = Page1`
-- No CSS Modules. Use plain className strings: `className="loginPage"` (NOT `className={styles.loginPage}`)
-- React is available globally. Destructure as needed: `const { useState, useEffect } = React`
-- Props format is `{ data }` only.
-- Assets (images, icons, etc.) are referenced directly via relative path: `<img src="../../<assetDirs>/<stateId>/logo.png" />`. Do NOT use `import` for assets.
+**Standard module format rules:**
+- Use standard import/export. The component uses `export default` at the end.
+- Use Less Modules: `import styles from './xxx.less'` and `className={styles.xxx}`
+- React is imported at the top: `import React, { useState, useEffect } from 'react'`
+- Props format is `{ data, stateInstance }`.
+- Assets (images, icons, etc.) are referenced via import or relative path.
 
-props follows the { data } format.
+props follows the { data, stateInstance } format.
 
 where data type is: {xxx} (supplied by main agent, i.e., state part from README).
 
-Events are logged via `console.log(eventId, payload)`. The available event IDs and their payload types are: {xxx} (supplied by main agent, i.e., event part from README).
+Events are published via `stateInstance._publish(eventId, payload)`. The available event IDs and their payload types are: {xxx} (supplied by main agent, i.e., event part from README).
 
 Related types are: {xxx} (supplied by main agent).
 
@@ -212,37 +196,37 @@ In the specific scene code (e.g., Page1.tsx), implement the secondary scene code
 Main scene TSX:
 
 // other code
-const { data } = props
+const { data, stateInstance } = props
 const { name } = data
 const onEdit = () => {
-   console.log('Page1.editClick', {})
+   stateInstance._publish('Page1.editClick', {})
 }
 // other code
-<div className="name">{name}</div>
+<div className={styles.name}>{name}</div>
 <button onClick={onEdit}>edit</button>
 // other code
 
 Secondary scene TSX, representing reviewing scenario:
 
 // other code
-<div className="name">Jammy</div>
+<div className={styles.name}>Jammy</div>
 <button disabled>edit</button>
 // other code
 
 Understand that reviewing means graying out the button, then modify the main scene TSX:
 
 // other code
-const { data } = props
+const { data, stateInstance } = props
 const { name, reviewing } = data
 const onEdit = () => {
-   console.log('Page1.editClick', {})
+   stateInstance._publish('Page1.editClick', {})
 }
 // other code
-<div className="name">{name}</div>
+<div className={styles.name}>{name}</div>
 <button onClick={onEdit} disabled={reviewing}>edit</button>
 // other code
 
-The less file uses plain class names (NOT CSS Modules). Ensure all CSS classes in tsx have corresponding definitions in the less file.
+The less file uses Less Modules (`styles.xxx`). Ensure all CSS classes in tsx use `styles.xxx` and have corresponding definitions in the less file.
 
 Also append the secondary scene's node ID to the comment block at the top of the main scene tsx file:
 
@@ -263,7 +247,7 @@ Toast secondary static mockups show toast/notification messages that appear in r
 
 Similarly start a subagent and inject:
 
-1. tsx and less file paths for the associated main scene (in `<playgroundDir>/<stateId>/`)
+1. tsx and less file paths for the associated main scene (in `<stateDirs.pages>/<stateId>/`)
 2. tsx and less file paths for the toast secondary scene (in `./.tmp/`)
 3. state and event parts from README
 4. Related type details
@@ -282,18 +266,18 @@ Toast secondary scene
 React path: {xxx} (supplied by main agent).
 less path: {xxx} (supplied by main agent).
 
-**Browser-compatible format rules:**
-- No import/export. The component is attached to window at the end: `window.Page1 = Page1`
-- No CSS Modules. Use plain className strings: `className="loginPage"` (NOT `className={styles.loginPage}`)
-- React is available globally. Destructure as needed: `const { useState, useEffect } = React`
-- Props format is `{ data }` only.
-- Assets (images, icons, etc.) are referenced directly via relative path: `<img src="../../<assetDirs>/<stateId>/logo.png" />`. Do NOT use `import` for assets.
+**Standard module format rules:**
+- Use standard import/export. The component uses `export default` at the end.
+- Use Less Modules: `import styles from './xxx.less'` and `className={styles.xxx}`
+- React is imported at the top: `import React, { useState, useEffect } from 'react'`
+- Props format is `{ data, stateInstance }`.
+- Assets (images, icons, etc.) are referenced via import or relative path.
 
-props follows the { data } format.
+props follows the { data, stateInstance } format.
 
 where data type is: {xxx} (supplied by main agent, i.e., state part from README).
 
-Events are logged via `console.log(eventId, payload)`. The available event IDs and their payload types are: {xxx} (supplied by main agent, i.e., event part from README).
+Events are published via `stateInstance._publish(eventId, payload)`. The available event IDs and their payload types are: {xxx} (supplied by main agent, i.e., event part from README).
 
 Related types are: {xxx} (supplied by main agent).
 
