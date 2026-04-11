@@ -177,7 +177,7 @@ const LoginPage: React.FC<{
 
 const LoginPageWithState = connect(
   loginPageState,
-  'LoginPageState.__stateChange',
+  'LoginPageState',
   LoginPage,
 );
 
@@ -194,7 +194,7 @@ When generating index.tsx from README:
 4. **getState()**: Publishes all private state fields at once.
 5. **on()**: Returns `this._subscribe(eventId)` for external subscription.
 6. **Page component**: Receives `{ data, stateInstance }` and passes both to every scene component.
-7. **connect()**: Wraps with `connect(stateInstance, '<ClassName>.__stateChange', Component)`.
+7. **connect()**: Wraps with `connect(stateInstance, '<ClassName>', Component)`. The second parameter is the class name; `connect` internally appends `.__stateChange` to derive the event name.
 
 ### Scene TSX File Example
 

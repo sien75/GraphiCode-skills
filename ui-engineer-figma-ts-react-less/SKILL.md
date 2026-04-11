@@ -53,7 +53,7 @@ After gathering this information, you need to generate an `index.tsx` at `<state
 1. **Imports**: State class (from `@/graphicode-utils`), scene components, and type definitions
 2. **State class**: Defines and instantiates the page's State class extending `Subscription` and implementing `State`, with private state fields derived from the README's state section, public setter methods that call `this._publish()`, a `getState()` method, and an `on()` subscription helper
 3. **Page component**: A React.FC that receives `{ data, stateInstance }` as props and assembles all scene components, passing both `data` and `stateInstance` to each
-4. **connect wrapper**: Wraps the page component with `connect(stateInstance, eventId, Component)` and exports it as default
+4. **connect wrapper**: Wraps the page component with `connect(stateInstance, ClassName, Component)` and exports it as default. The second parameter is the State class name (e.g., `'LoginPageState'`), and `connect` internally derives the state change event name by appending `.__stateChange`
 
 The detailed example has been placed in `./references/step2-code-basic.md`.
 
