@@ -86,7 +86,7 @@ Generate the `index.tsx` at `<stateDirs.pages>/<stateId>/index.tsx`. It contains
 - `connect()` wrapper and default export
 
 ```tsx
-import { State, Subscription, connect, getArg } from '@/graphicode-utils';
+import { State, Subscription, connect, getArg, guardEnabled } from '@/graphicode-utils';
 import React from 'react';
 import { Observable } from 'rxjs';
 import LoginForm from './LoginForm';
@@ -104,6 +104,7 @@ export class LoginPageState extends Subscription implements State {
   private forgetPasswordCodeCountdown: number = 0;
 
   // ========== public methods ==========
+  @guardEnabled
   public setPageStatus(...args: { key: string; value: any }[]) {
     const status = getArg<LoginPageStatus>(args, 'status');
     if (status) {
@@ -112,6 +113,7 @@ export class LoginPageState extends Subscription implements State {
     }
   }
 
+  @guardEnabled
   public setDefaultEmail(...args: { key: string; value: any }[]) {
     const email = getArg<string>(args, 'email');
     if (email !== undefined) {
@@ -120,6 +122,7 @@ export class LoginPageState extends Subscription implements State {
     }
   }
 
+  @guardEnabled
   public setLoginCodeCountdown(...args: { key: string; value: any }[]) {
     const countdown = getArg<number>(args, 'countdown');
     if (countdown !== undefined) {
@@ -130,6 +133,7 @@ export class LoginPageState extends Subscription implements State {
     }
   }
 
+  @guardEnabled
   public setForgetPasswordCodeCountdown(...args: { key: string; value: any }[]) {
     const countdown = getArg<number>(args, 'countdown');
     if (countdown !== undefined) {
@@ -190,7 +194,7 @@ When generating index.tsx from README:
 
 1. **State class naming**: Use `<PageName>State` (e.g., `LoginPageState`).
 2. **Private fields**: One per `state` entry in README, with sensible defaults.
-3. **Public methods**: One per `method` entry in README. Each extracts args via `getArg()`, updates the private field, and calls `this._publish('<ClassName>.__stateChange', { field: value })`.
+3. **Public methods**: One per `method` entry in README. Decorated with `@guardEnabled` to auto-skip when not enabled. Each extracts args via `getArg()`, updates the private field, and calls `this._publish('<ClassName>.__stateChange', { field: value })`.
 4. **getState()**: Publishes all private state fields at once.
 5. **on()**: Returns `this._subscribe(eventId)` for external subscription.
 6. **Page component**: Receives `{ data, stateInstance }` and passes both to every scene component.

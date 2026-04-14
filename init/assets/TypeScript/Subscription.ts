@@ -1,9 +1,24 @@
 import { Subject } from 'rxjs';
 
+/**
+ * Method decorator: skips execution when `this._enabled` is false.
+ * Apply to public setter methods in State classes so they are
+ * automatically guarded by the enabled state.
+ */
+function guardEnabled<This extends { _enabled: boolean }, Args extends any[], Return>(
+  target: (this: This, ...args: Args) => Return,
+  _context: ClassMethodDecoratorContext<This>,
+) {
+  return function (this: This, ...args: Args): Return | undefined {
+    if (!this._enabled) return;
+    return target.apply(this, args);
+  };
+}
+
 class Subscription {
   private _subjects: Map<string, Subject<any>> = new Map();
   private _enabledSubject = new Subject<boolean>();
-  private _enabled = false;
+  protected _enabled = false;
 
   public isEnabled(): boolean {
     return this._enabled;
@@ -43,3 +58,4 @@ class Subscription {
 }
 
 export default Subscription;
+export { guardEnabled };

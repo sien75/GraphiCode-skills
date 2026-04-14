@@ -51,7 +51,7 @@ The README contains precise descriptions of the page functionality, as well as t
 After gathering this information, you need to generate an `index.tsx` at `<stateDirs.pages>/<stateId>/index.tsx`. This is the page entry file that:
 
 1. **Imports**: State class (from `@/graphicode-utils`), scene components, and type definitions
-2. **State class**: Defines and instantiates the page's State class extending `Subscription` and implementing `State`, with private state fields derived from the README's state section, public setter methods that call `this._publish()`, a `getState()` method, and an `on()` subscription helper
+2. **State class**: Defines and instantiates the page's State class extending `Subscription` and implementing `State`, with private state fields derived from the README's state section, public setter methods decorated with `@guardEnabled` that call `this._publish()`, a `getState()` method, and an `on()` subscription helper. The `@guardEnabled` decorator automatically skips execution when the instance is not enabled.
 3. **Page component**: A React.FC that receives `{ data, stateInstance }` as props and assembles all scene components, passing both `data` and `stateInstance` to each
 4. **connect wrapper**: Wraps the page component with `connect(stateInstance, ClassName, Component)` and exports it as default. The second parameter is the State class name (e.g., `'LoginPageState'`), and `connect` internally derives the state change event name by appending `.__stateChange`
 
