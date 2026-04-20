@@ -55,8 +55,8 @@ The forget password page verification code countdown uses the forgetPasswordCode
 | README Definition | Output Mapping | Description |
 |---|---|---|
 | `state` | State class private fields + type definitions | Defines the data shape; each state field becomes a private field in the State class with a corresponding setter method |
-| `method` | State class public methods | Each method becomes a public setter that updates private state and calls `this._publish()` |
-| `event` | `stateInstance._publish(eventId, payload)` | Events are published via stateInstance when triggered by UI interactions |
+| `method` | State class public methods | Each method becomes a public method decorated with `@guardEnabled` and `@curried` that updates private state and returns the updated value |
+| `event` | `stateInstance._publish('StateClassName.eventName', payload)` | Self-originated events (user actions, lifecycle) are published via stateInstance |
 | Data and View Mapping | Scene component conditional rendering | Each mapping scenario drives conditional rendering logic in scene components |
 
 ## Output File Structure
@@ -80,15 +80,16 @@ All output files go to `<stateDirs.pages>/<stateId>/`:
 
 Generate the `index.tsx` at `<stateDirs.pages>/<stateId>/index.tsx`. It contains:
 - Imports for State utilities, scene components, and types
-- State class definition with private state fields, public setter methods, getState(), and on() helper
+- State class definition with private state fields, public methods with `@guardEnabled` + `@curried` decorators, and getState()
 - State instantiation and enable
 - Page component receiving `{ data, stateInstance }` and assembling scene components
 - `connect()` wrapper and default export
 
 ```tsx
-import { State, Subscription, connect, getArg, guardEnabled } from '@/graphicode-utils';
+import State from '@/graphicode-utils/State';
+import { guardEnabled, curried } from '@/graphicode-utils/state-decorators';
+import { connect } from '@/graphicode-utils';
 import React from 'react';
-import { Observable } from 'rxjs';
 import LoginForm from './LoginForm';
 import Terms from './Terms';
 import SetNewPassword from './SetNewPassword';
@@ -96,7 +97,7 @@ import ForgetPassword from './ForgetPassword';
 import { LoginPageStatus } from './types';
 
 // State Class - Manages internal state and logic of login page
-export class LoginPageState extends Subscription implements State {
+export class LoginPageState extends State {
   // ========== private state ==========
   private status: LoginPageStatus = 'login';
   private email: string = '';
@@ -105,57 +106,40 @@ export class LoginPageState extends Subscription implements State {
 
   // ========== public methods ==========
   @guardEnabled
-  public setPageStatus(...args: { key: string; value: any }[]) {
-    const status = getArg<LoginPageStatus>(args, 'status');
-    if (status) {
-      this.status = status;
-      this._publish('LoginPageState.__stateChange', { status });
-    }
+  @curried
+  public setPageStatus(status: LoginPageStatus) {
+    this.status = status;
+    this._publish('LoginPageState.__stateChange', { status });
   }
 
   @guardEnabled
-  public setDefaultEmail(...args: { key: string; value: any }[]) {
-    const email = getArg<string>(args, 'email');
-    if (email !== undefined) {
-      this.email = email;
-      this._publish('LoginPageState.__stateChange', { email });
-    }
+  @curried
+  public setDefaultEmail(email: string) {
+    this.email = email;
+    this._publish('LoginPageState.__stateChange', { email });
   }
 
   @guardEnabled
-  public setLoginCodeCountdown(...args: { key: string; value: any }[]) {
-    const countdown = getArg<number>(args, 'countdown');
-    if (countdown !== undefined) {
-      this.loginCodeCountdown = countdown;
-      this._publish('LoginPageState.__stateChange', {
-        loginCodeCountdown: countdown,
-      });
-    }
+  @curried
+  public setLoginCodeCountdown(countdown: number) {
+    this.loginCodeCountdown = countdown;
+    this._publish('LoginPageState.__stateChange', { loginCodeCountdown: countdown });
   }
 
   @guardEnabled
-  public setForgetPasswordCodeCountdown(...args: { key: string; value: any }[]) {
-    const countdown = getArg<number>(args, 'countdown');
-    if (countdown !== undefined) {
-      this.forgetPasswordCodeCountdown = countdown;
-      this._publish('LoginPageState.__stateChange', {
-        forgetPasswordCodeCountdown: countdown,
-      });
-    }
+  @curried
+  public setForgetPasswordCodeCountdown(countdown: number) {
+    this.forgetPasswordCodeCountdown = countdown;
+    this._publish('LoginPageState.__stateChange', { forgetPasswordCodeCountdown: countdown });
   }
 
   public getState() {
-    this._publish('LoginPageState.__stateChange', {
+    return {
       status: this.status,
       email: this.email,
       loginCodeCountdown: this.loginCodeCountdown,
       forgetPasswordCodeCountdown: this.forgetPasswordCodeCountdown,
-    });
-  }
-
-  // ========== subscription helper ==========
-  public on(eventId: string): Observable<any> {
-    return this._subscribe(eventId);
+    };
   }
 }
 
@@ -192,11 +176,10 @@ export default LoginPageWithState;
 
 When generating index.tsx from README:
 
-1. **State class naming**: Use `<PageName>State` (e.g., `LoginPageState`).
+1. **State class naming**: Use `<PageName>State` (e.g., `LoginPageState`), extending `State`.
 2. **Private fields**: One per `state` entry in README, with sensible defaults.
-3. **Public methods**: One per `method` entry in README. Decorated with `@guardEnabled` to auto-skip when not enabled. Each extracts args via `getArg()`, updates the private field, and calls `this._publish('<ClassName>.__stateChange', { field: value })`.
-4. **getState()**: Publishes all private state fields at once.
-5. **on()**: Returns `this._subscribe(eventId)` for external subscription.
+3. **Public methods**: One per `method` entry in README. Decorated with `@guardEnabled` (auto-skip when not enabled) and `@curried` (parameter collection from flow layer). Methods use normal parameter signatures and update private fields directly. Use `this._publish('ClassName.__stateChange', { field: value })` to notify the UI of state changes.
+4. **getState()**: Returns all private state fields as an object.
 6. **Page component**: Receives `{ data, stateInstance }` and passes both to every scene component.
 7. **connect()**: Wraps with `connect(stateInstance, '<ClassName>', Component)`. The second parameter is the class name; `connect` internally appends `.__stateChange` to derive the event name.
 
@@ -223,7 +206,7 @@ const LoginForm: React.FC<LoginFormProps> = (props) => {
 
   // TODO: render JSX by data
   // Use styles.xxx for className
-  // Use stateInstance._publish(eventId, payload) for events
+  // Use stateInstance._publish('StateClassName.eventName', payload) for self-originated events
   return null;
 };
 

@@ -120,7 +120,7 @@ Rules:
 - All diff points become props; use sensible defaults where appropriate
 - Support `className` prop for style overrides
 - Support `children` or render props when the varying part is complex JSX
-- No business logic — shared components are presentational. Business-specific state management and event publishing (`stateInstance._publish`) stay in the page scene; the shared component receives callbacks via props
+- No business logic — shared components are presentational. Business-specific state management stays in the page scene; the shared component receives callbacks via props. State methods only return values; self-originated events use `stateInstance._publish('StateClassName.eventName', payload)`
 - Styles must conform to `designSpecFileName`
 
 ### Part B: Replace all occurrences in page scenes

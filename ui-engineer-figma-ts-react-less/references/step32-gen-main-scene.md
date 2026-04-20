@@ -86,7 +86,7 @@ props follows the { data, stateInstance } format.
 
 where data type is: {xxx} (supplied by main agent, i.e., state part from README).
 
-Events are published via `stateInstance._publish(eventId, payload)`. The available event IDs and their payload types are: {xxx} (supplied by main agent, i.e., event part from README).
+Self-originated events (user actions) are published via `stateInstance._publish('StateClassName.eventName', payload)`. The available event IDs and their payload types are: {xxx} (supplied by main agent, i.e., event part from README).
 
 Related types are: {xxx} (supplied by main agent).
 
@@ -171,7 +171,7 @@ props follows the { data, stateInstance } format.
 
 where data type is: {xxx} (supplied by main agent, i.e., state part from README).
 
-Events are published via `stateInstance._publish(eventId, payload)`. The available event IDs and their payload types are: {xxx} (supplied by main agent, i.e., event part from README).
+Self-originated events (user actions) are published via `stateInstance._publish('StateClassName.eventName', payload)`. The available event IDs and their payload types are: {xxx} (supplied by main agent, i.e., event part from README).
 
 Related types are: {xxx} (supplied by main agent).
 
@@ -277,7 +277,7 @@ props follows the { data, stateInstance } format.
 
 where data type is: {xxx} (supplied by main agent, i.e., state part from README).
 
-Events are published via `stateInstance._publish(eventId, payload)`. The available event IDs and their payload types are: {xxx} (supplied by main agent, i.e., event part from README).
+Self-originated events (user actions) are published via `stateInstance._publish('StateClassName.eventName', payload)`. The available event IDs and their payload types are: {xxx} (supplied by main agent, i.e., event part from README).
 
 Related types are: {xxx} (supplied by main agent).
 

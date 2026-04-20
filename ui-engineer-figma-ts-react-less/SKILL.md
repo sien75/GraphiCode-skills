@@ -51,7 +51,7 @@ The README contains precise descriptions of the page functionality, as well as t
 After gathering this information, you need to generate an `index.tsx` at `<stateDirs.pages>/<stateId>/index.tsx`. This is the page entry file that:
 
 1. **Imports**: State class (from `@/graphicode-utils`), scene components, and type definitions
-2. **State class**: Defines and instantiates the page's State class extending `Subscription` and implementing `State`, with private state fields derived from the README's state section, public setter methods decorated with `@guardEnabled` that call `this._publish()`, a `getState()` method, and an `on()` subscription helper. The `@guardEnabled` decorator automatically skips execution when the instance is not enabled.
+2. **State class**: Defines and instantiates the page's State class extending `State` (from `@/graphicode-utils`), with private state fields derived from the README's state section, public methods decorated with `@guardEnabled` and `@curried` (from `state-decorators`). Methods just return values — result distribution is handled by the flow layer. Self-originated events (user actions, lifecycle) use `this._publish('StateClassName.eventName', payload)`. The `@guardEnabled` decorator skips execution when the instance is not enabled. The `@curried` decorator enables parameter collection from the flow layer.
 3. **Page component**: A React.FC that receives `{ data, stateInstance }` as props and assembles all scene components, passing both `data` and `stateInstance` to each
 4. **connect wrapper**: Wraps the page component with `connect(stateInstance, ClassName, Component)` and exports it as default. The second parameter is the State class name (e.g., `'LoginPageState'`), and `connect` internally derives the state change event name by appending `.__stateChange`
 
@@ -154,7 +154,7 @@ Before starting, **remind the user**: it is recommended to implement only **one 
 2. **Less Modules**: Use Less Modules with `import styles from './xxx.less'` and `className={styles.xxx}`. Files keep the `.less` extension (not `.module.less`).
 3. **Full TypeScript**: Use complete TypeScript syntax including `interface`, `type`, generics, and type annotations.
 4. **Props format**: Scene components receive `{ data, stateInstance }` as props.
-5. **Events via stateInstance**: Use `stateInstance._publish(eventId, payload)` for UI interaction events.
+5. **Events via stateInstance**: Use `stateInstance._publish('StateClassName.eventName', payload)` for self-originated UI interaction events. State methods only return values; result routing is handled by the flow layer.
 6. **React via import**: Import React and hooks at the top of the file (e.g., `import React, { useState } from 'react'`).
 7. **Asset paths**: Reference assets using standard import or relative paths from the scene file's location.
 
