@@ -8,23 +8,23 @@ Algorithm nodes receive input, process it through their own logic, and produce o
 
 This is an example of an algorithm node file, meaning:
 
-1. this algorithm receives a payload containing fields a (dir1/TypeA), b (dir1/TypeB), c (dir2/TypeC), and d (dir2/TypeD)
+1. this algorithm receives a payload containing fields a (TypeA), b (TypeB), c (TypeC), and d (TypeD)
 2. executes the description under the description heading
-3. produces an output with fields e (dir2/TypeE), f (dir2/TypeF), and g (dir2/TypeG)
+3. produces an output with fields e (TypeE), f (TypeF), and g (TypeG)
 
 ```md
 # io
-(a: dir1/TypeA, b: dir1/TypeB, c: dir2/TypeC, d: dir2/TypeD) -> {e: dir2/TypeE, f: dir2/TypeF, g: dir2/TypeG}
+(a: TypeA, b: TypeB, c: TypeC, d: TypeD) -> {e: TypeE, f: TypeF, g: TypeG}
 
 # description
 Transform a and b to e and f.
 ```
 
-The first line is the **signature**: `(inputs...) -> output`. Each parameter follows the format `paramName: dir/TypeID`, where `dir/TypeID` is a type ID with its directory prefix. The directory corresponds to one of the `typeDirs` in `graphig.md`, and the type details are defined there, which you need to look up accordingly.
+The first line is the **signature**: `(inputs...) -> output`. Each parameter follows the format `paramName: TypeName`. Types are defined in the state README files that participate in the flow where this algorithm is used — look up the relevant state's `# type` section for the type definition.
 
 ## important notes
 
-When writing algorithms, **do not mention states or flows**. Algorithms should only depend on types.
+When writing algorithms, **do not mention states or flows**. Algorithms reference types defined in states but do not depend on state logic.
 
 When writing an algorithm's description, **do not describe the source or destination of data**. Focus only on how data is transformed from input to output.
 

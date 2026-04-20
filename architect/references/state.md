@@ -13,20 +13,25 @@ State nodes have 2 types of members for external interaction: method and event. 
 
 This example means that this state node file has:
 
-1. four methods: `method1` takes `dir1/TypeX` and returns `dir1/TypeY`, `method2` takes no input and returns `void`, `method3` takes `dir2/TypeD` and returns `void`, `method4` takes `dir2/TypeOptions` and returns `void`.
-2. two self-originated events: `MyState.event1` emits `dir1/TypeH` data, `MyState.event2` emits `dir1/TypeI` data.
-3. the description of this state is explained under the description heading
+1. types defined locally: `MyOptions`, `MyResult` — these are the state's own types, used by its methods and events.
+2. four methods: `method1` takes `MyOptions` and returns `MyResult`, `method2` takes no input and returns `void`, etc.
+3. two self-originated events: `MyState.event1` emits `EventData` data, `MyState.event2` emits `string` data.
+4. the description of this state is explained under the description heading.
 
 ```md
+# type
+MyOptions: { key: string, value: any }
+MyResult: { success: boolean, data: any }
+EventData: { id: string, timestamp: number }
+
 # method
-method1: (x: dir1/TypeX) -> dir1/TypeY
+method1: (options: MyOptions) -> MyResult
 method2: () -> void
-method3: (d: dir2/TypeD) -> void
-method4: (options: dir2/TypeOptions) -> void
+method3: (d: string) -> void
 
 # event
-MyState.event1: dir1/TypeH
-MyState.event2: dir1/TypeI
+MyState.event1: EventData
+MyState.event2: string
 
 # resides-in
 memory
@@ -35,7 +40,7 @@ memory
 This state is a memory state, which means...
 ```
 
-Here `dir1/TypeA` is a type ID with its directory prefix. The directory corresponds to one of the `typeDirs` in `graphig.md`, and the type details are defined there, which you need to look up accordingly.
+Types are defined inside each state's README under the `# type` section. Each state owns its types — no external type directories. If multiple states need similar types, define them independently in each state but keep them consistent by referencing other states' definitions when writing.
 
 Methods only return values or throw errors. They do **not** publish events. All result distribution is handled by the flow layer.
 
@@ -44,7 +49,7 @@ Events are self-originated only — things the state initiates on its own (user 
 ## Parameter and Option Constraints
 
 * **Method Parameters**: `method` types **cannot** have optional parameters (e.g., `?`). If a method requires optional inputs, you must encapsulate them in an options object (e.g., `options: TypeOptions`). It's perfectly valid to pass an empty object (`{}`) if the type allows it, but the parameter itself cannot be optional.
-* **Event Data**: Each event emits exactly **one** data type. For example: `MyState.dataLoaded: dir1/TypeData`.
+* **Event Data**: Each event emits exactly **one** data type. For example: `MyState.dataLoaded: EventData`.
 
 ## resides-in
 
@@ -81,7 +86,7 @@ Every state automatically has the following built-in members. They do not need t
 
 Mapping thinking means that no matter what the state is, it must correspond to a concrete entity. In other words, you must clearly specify where this state resides, for example: ordinary in-memory state, persistent state on disk, or state in a database, etc.
 
-When writing states, **do not mention algorithms or flows**. States should only depend on types.
+When writing states, **do not mention algorithms or flows**. States define their own types locally.
 
 **Check `rumtimeEnv` to determine which resides-in options apply.**
 

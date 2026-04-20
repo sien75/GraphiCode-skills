@@ -1,6 +1,6 @@
 # directory-level graphig.md config files
 
-Each directory (flowDirs, algorithmDirs, stateDirs, typeDirs) contains a config file that briefly summarizes the items within. The format is as follows:
+Each directory (flowDirs, algorithmDirs, stateDirs) contains a config file that briefly summarizes the items within. The format is as follows:
 
 ```markdown
 # flow
@@ -13,7 +13,6 @@ The config file names are:
 * `flow.graphig.md` — in flowDirs
 * `algorithm.graphig.md` — in algorithmDirs
 * `state.graphig.md` — in stateDirs
-* `type.graphig.md` — in typeDirs
 
 ## special prefix for state descriptions
 
