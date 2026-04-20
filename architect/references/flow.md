@@ -1,148 +1,318 @@
-# flow
-
-## What is flow
+# what is flow
 
 `flow` is the core concept in GraphiCode. It describes how data flows from state events, through algorithms, into parameters of state methods. When all parameters are collected, the method executes automatically.
 
-## D2 Sequence Diagram Format
+# YAML sequence diagram format
 
-Use [D2 Sequence Diagram](https://d2lang.com/) syntax.
+Flow is described in YAML format, stored in `README.yaml` files.
 
-### Participants (States)
+## basic structure
 
-Declare all state nodes at the top:
+```yaml
+type: sequence_diagram
 
-```d2
-shape: sequence_diagram
+participants:
+  - name: UserPage
+    path: pages/UserPage
+  - name: Auth
+    path: services/Auth
 
-UserPage: pages/UserPage
-Auth: services/Auth
+connections:
+  - id: 0
+    on:
+      state: UserPage
+      event: submit
+    pipe:
+      - getUsername()
+    call:
+      state: Auth
+      method: login
+      param: username
 ```
 
-Mapping: `ShortName: dir/LongName`
+## participants
 
-### Connection Rule
+Declare all participating states under `participants`. Each participant has:
 
-Format:
+- `name`: Short name used in connections.
+- `path`: Directory path of the state (e.g., `pages/UserPage`, `services/Auth`).
 
-```d2
-SourceState.event -> TargetState.method.param: algo1(), algo2()
+## connections
+
+Each connection reads as a sentence: **on** event, **pipe** transforms, **call** method, **then** handle return, **catch** handle error.
+
+Fields:
+
+- `id`: Unique sequence number, starting from 0, must be consecutive.
+- `on.state`: Optional. The state that emits the event. If present, listens to a state self-originated event. If absent, listens to a flow broadcast event on the global EventBus.
+- `on.event`: The event name that triggers this connection (broadcast — receives all occurrences).
+- `pipe`: Optional list of algorithm functions. Each receives `{ logs, payload }` and returns a transformed value. Executes top-to-bottom. The final output becomes the value for `call.param`.
+- `call.state`: The target state that owns the method.
+- `call.method`: The method to call.
+- `call.param`: Which parameter of the method this connection fills.
+- `then`: Optional. Routes the method's return value. See "then and catch" below.
+- `catch`: Optional. Routes a thrown error (or Promise rejection). See "then and catch" below.
+
+Only **event -> method** connections are allowed:
+
+- `on` must reference a state event (with `state`) or a flow broadcast event (without `state`).
+- `call` must reference a state method and one of its parameters.
+
+## then and catch
+
+`then` routes the method's return value. `catch` routes a thrown error or Promise rejection. If the method returns a Promise, it is automatically awaited: resolve goes to `then`, reject goes to `catch`.
+
+`then` and `catch` each support three distribution modes, distinguished by their YAML structure:
+
+**Unicast** — object with `state`, `method`, `param`: routes to one target.
+
+```yaml
+then:
+  state: UserPage
+  method: render
+  param: config
 ```
 
-**Components**:
+**Multicast** — array of objects: routes to multiple targets simultaneously.
 
-- `SourceState.event`: An event that triggers the flow.
-- `TargetState.method.param`: A method and one of its parameters.
-- `algo1(), algo2()`: Optional algorithm chain. Each receives `{ logs, payload }` and returns transformed value.
-
-### Numbering and Linking
-
-Every connection needs a number: `# 0`, `# 1`, ...
-
-Use `link` to bind downstream consumers to a specific invocation:
-
-- `# 0 linked` – initiating connection; creates flow logs ID 0
-- `# 1 link to 0` – responds only to events from #0's execution
-
-`link` is needed when a method's completion event (e.g., `readSuccess`) could come from multiple independent calls. It prevents cross-flow interference.
-
-Arrow style must be hollow at "link" scene. Add:
-
-```d2
-{
-  target-arrowhead: {
-    style.filled: false
-  }
-}
+```yaml
+then:
+  - state: Store
+    method: save
+    param: token
+  - state: Dashboard
+    method: render
+    param: user
 ```
 
-### Parameter Collection
+**Broadcast** — object with `event`: publishes the value as a broadcast event on the global EventBus. Any connection with `on: { event: ... }` (no `state`) can listen to it.
 
-A method may have multiple parameters, each from a different connection. The flow tracks completion:
-
-- Each connection's result is stored by its serial number.
-- When all parameters have values, the method executes automatically.
-
-### Example 1: Login
-
-```d2
-shape: sequence_diagram
-
-UserPage: pages/UserPage
-Auth: services/Auth
-Store: stores/TokenStore
-Dashboard: pages/Dashboard
-
-# 0
-UserPage.submit -> Auth.login.username: getUsername()
-
-# 1
-UserPage.submit -> Auth.login.password: getPassword()
-
-# 2
-Auth.loginSuccess -> Store.save.token: extractToken()
-
-# 3
-Auth.loginSuccess -> Dashboard.render.user: extractUser()
+```yaml
+then:
+  event: loginSuccess
 ```
 
-- `#0` and `#1` both originate from `UserPage.submit`. They fill `Auth.login`'s `username` and `password`.
-- When both parameters are ready, `Auth.login` executes.
-- After execution, `Auth.loginSuccess` event is triggered.
-- `#2` and `#3` consume that event, passing data to `Store.save.token` and `Dashboard.render.user`.
+Detection rule for the large model: if the value is an **array** → multicast. If the value is an object with an `event` field → broadcast. If the value is an object with a `state` field → unicast.
 
-All four connections belong to one flow.
+Each unicast/multicast target has these fields:
 
-### Example 2: Read with link
+- `state`: The target state.
+- `method`: The method to call.
+- `param`: Which parameter this fills.
+- `pipe`: Optional transformation pipeline (same as connection pipe).
+- `then`: Optional nested then (for chains like A → B → C → A).
+- `catch`: Optional nested catch.
 
-```d2
-shape: sequence_diagram
+Each broadcast target has these fields:
 
-UserPage: pages/UserPage
-ConfigStore: stores/ConfigStore
+- `event`: The event name to publish (published on the global EventBus).
 
-# 0 linked
-UserPage.init -> ConfigStore.read.key: getConfigKey() {
-  target-arrowhead: {
-    style.filled: false
-  }
-}
+When multiple connections fill the same method, `then`/`catch` go on **one** connection (convention: the first). Other connections for the same method don't repeat them.
 
-# 1 link to 0
-ConfigStore.readSuccess -> UserPage.render.config: getConfigValue() {
-  target-arrowhead: {
-    style.filled: false
-  }
-}
+## pipe
 
-# 2 link to 0
-ConfigStore.readError -> UserPage.showInitError.error: getErrorMessage() {
-  target-arrowhead: {
-    style.filled: false
-  }
-}
+Pipe is a transformation pipeline between the event and the method call:
+
+```yaml
+pipe:
+  - extractToken()
+  - validateToken()
+  - formatToken()
 ```
 
-- `#0` initiates `ConfigStore.read`. It is `linked`, creating flow logs 0.
-- `ConfigStore.read` executes. On completion, it triggers either `readSuccess` or `readError`.
-- `#1` and `#2` are `link to 0`. They only respond to events from the specific `read` call initiated by `#0`.
-- This scoping ensures that if another flow also calls `ConfigStore.read`, its events won't be caught by `#1` and `#2`.
+- Each function receives `{ logs, payload }`.
+  - `logs`: `Map<number, any[]>` — flow's operation history, records of all connection executions.
+  - `payload`: Data from the upstream event, or the previous function's output.
+- The final output becomes the value for `call.param`.
+- `pipe` can also appear inside `then`/`catch` targets, transforming the return value or error before delivery.
 
-### Important Rules
+## parameter collection
+
+A method may require multiple parameters, each provided by a different connection. The flow tracks which parameters have been filled:
+
+- Each connection fills exactly one parameter (specified by `call.param`).
+- When **all** parameters of a method have received values, the method executes automatically.
+
+## event naming
+
+There are two sources of events:
+
+- **State self-originated events**: declared in the state README, named as `StateClassName.eventName` (e.g., `UserPage.click`, `Timer.tick`). These are inherently namespaced and won't conflict. Listened via `on: { state: ..., event: ... }`.
+- **Flow broadcast events**: defined in flow YAML via `then`/`catch` broadcast mode. Published to the global EventBus. When naming a broadcast event, search all existing flow YAML files for `event:` fields to avoid name conflicts. Listened via `on: { event: ... }` (no `state`).
+
+State methods only return values or throw errors. They do **not** call `_publish` to emit events. All result distribution (unicast, multicast, broadcast) is handled by the flow layer.
+
+## important rules
 
 1. Only `event -> method` connections are allowed.
-2. Sequence numbers must be unique and consecutive.
-3. Use `link` only when you need to scope event consumers to a specific invocation. Otherwise omit it.
-4. Connections without explicit `link` that share an event source belong to the same flow.
+2. Sequence numbers (`id`) must be unique and consecutive, starting from 0.
+3. Each connection fills exactly one parameter of the target method.
+4. A method executes automatically when all its parameters are collected.
+5. `on` with `state`: listens to a state self-originated event. `on` without `state`: listens to a flow broadcast event on the global EventBus.
+6. `then` routes the method's **return value**: unicast (object with `state`), multicast (array), or broadcast (object with `event`).
+7. `catch` routes a **thrown error or Promise rejection**: same three modes as `then`.
+8. State methods must not call `_publish`. Result distribution is flow's responsibility.
 
-## Built-in Methods
+# examples
 
-Every state has these (not in README):
+## example 1: login (multicast then)
 
-| type | name | description |
-|------|------|-------------|
-| method | `enabled` | activate state |
-| method | `disabled` | deactivate state |
-| method | `readEnabled` | get enabled status (boolean) |
-| event | `enabledChange` | enabled flag changed (payload: boolean) |
-| event | `enabledValueRead` | after `readEnabled` call |
+```yaml
+type: sequence_diagram
+
+participants:
+  - name: UserPage
+    path: pages/UserPage
+  - name: Auth
+    path: services/Auth
+  - name: Store
+    path: stores/TokenStore
+  - name: Dashboard
+    path: pages/Dashboard
+
+connections:
+  - id: 0
+    on:
+      state: UserPage
+      event: UserPage.submit
+    pipe:
+      - getUsername()
+    call:
+      state: Auth
+      method: login
+      param: username
+    then:
+      - state: Store
+        method: save
+        param: token
+        pipe:
+          - extractToken()
+      - state: Dashboard
+        method: render
+        param: user
+        pipe:
+          - extractUser()
+    catch:
+      state: Dashboard
+      method: showError
+      param: error
+
+  - id: 1
+    on:
+      state: UserPage
+      event: UserPage.submit
+    pipe:
+      - getPassword()
+    call:
+      state: Auth
+      method: login
+      param: password
+```
+
+- `#0` and `#1`: `UserPage.submit` is a broadcast event, all listeners receive it. They fill `Auth.login`'s `username` and `password`.
+- When both parameters are ready, `Auth.login` executes.
+- `then` (multicast): the return value is routed to both `Store.save` and `Dashboard.render`.
+- `catch` (unicast): if `Auth.login` throws, the error is routed to `Dashboard.showError`.
+
+## example 2: config read (unicast then/catch)
+
+```yaml
+type: sequence_diagram
+
+participants:
+  - name: UserPage
+    path: pages/UserPage
+  - name: ConfigStore
+    path: stores/ConfigStore
+
+connections:
+  - id: 0
+    on:
+      state: UserPage
+      event: UserPage.init
+    pipe:
+      - getConfigKey()
+    call:
+      state: ConfigStore
+      method: read
+      param: key
+    then:
+      state: UserPage
+      method: render
+      param: config
+      pipe:
+        - getConfigValue()
+    catch:
+      state: UserPage
+      method: showInitError
+      param: error
+      pipe:
+        - getErrorMessage()
+```
+
+- `on.event: UserPage.init` is broadcast — all listeners receive it.
+- `ConfigStore.read` executes and returns the config data.
+- `then` (unicast): the return value is piped through `getConfigValue` and routed to `UserPage.render`.
+- `catch` (unicast): if `ConfigStore.read` throws, the error is piped through `getErrorMessage` and routed to `UserPage.showInitError`.
+
+## example 3: broadcast result
+
+```yaml
+connections:
+  - id: 0
+    on:
+      state: UserPage
+      event: UserPage.submit
+    pipe:
+      - getCredentials()
+    call:
+      state: Auth
+      method: login
+      param: credentials
+    then:
+      event: loginSuccess
+    catch:
+      event: loginError
+```
+
+- `then` (broadcast): `Auth.login`'s return value is published as `loginSuccess` event on the global EventBus. Any connection with `on: { event: loginSuccess }` (no `state`) can listen to it.
+- `catch` (broadcast): a thrown error is published as `loginError` event on the global EventBus.
+
+## example 4: listening to a flow broadcast event
+
+Example 3 broadcasts `loginSuccess`. A separate flow listens to this event. Note that `on` has **no `state` field** — this is a flow broadcast event living on the global EventBus, not a self-originated state event.
+
+```yaml
+# flow file: save-token-on-login.yaml
+type: sequence_diagram
+
+participants:
+  - name: Store
+    path: stores/TokenStore
+
+connections:
+  - id: 0
+    on:
+      event: loginSuccess
+    pipe:
+      - extractToken()
+    call:
+      state: Store
+      method: save
+      param: token
+```
+
+- `on.event: loginSuccess` has no `state` — it listens to the global EventBus where flow broadcast events are published.
+- This demonstrates the two types of `on`: with `state` (state self-originated events) and without `state` (flow broadcast events).
+
+# built-in methods and events
+
+Every state has these built-in members :
+
+| type | signature | description |
+|------|-----------|-------------|
+| method | `enable(): void` | activate state |
+| method | `disable(): void` | deactivate state |
+| method | `getState(): any` | get all state data |
+| method | `isEnabled(): boolean` | check whether the state is currently enabled |
+| event | `StateClassName.enabledChange: boolean` | emitted when enabled flag changes |

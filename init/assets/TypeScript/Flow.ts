@@ -1,74 +1,121 @@
 import { Observable, map } from 'rxjs';
+import Subscription from './Subscription';
 
 type State = {
   on(eventName: string): Observable<any>;
+  _publish?(id: string, payload?: any): void;
   [key: string]: any;
 };
 
-const curried = (
-  fn: (...args: Record<string, any>[]) => any,
-  serialNumber: number,
-  logs: Map<number, any[]>
-): (param: Record<string, any>) => any => {
-  const collected: Record<string, any>[] = [];
-  const step = (param: Record<string, any>): any => {
-    collected.push(param);
-    if (collected.length >= fn.length) {
-      const output = fn(...collected);
-      const records = logs.get(serialNumber) ?? [];
-      records.push({ input: [...collected], output });
-      logs.set(serialNumber, records);
-      return output;
-    }
-    return step;
-  };
-  return step;
+export type UnicastDef = {
+  targetState: State;
+  targetMethod: string;
+  targetParam: string;
+  pipe: ((input: any) => any)[];
+  then?: ThenDef;
+  catch?: ThenDef;
 };
 
+export type BroadcastDef = {
+  event: string;
+};
+
+export type ThenDef = UnicastDef | UnicastDef[] | BroadcastDef;
+
+const isBroadcast = (def: ThenDef): def is BroadcastDef =>
+  !Array.isArray(def) && 'event' in def;
+
+const toUnicastArray = (def: ThenDef): UnicastDef[] | null =>
+  isBroadcast(def) ? null : Array.isArray(def) ? def : [def];
+
+const createCollector = (paramCount: number) => {
+  const collected: { key: string; value: any }[] = [];
+  return (param: { key: string; value: any }) => {
+    collected.push(param);
+    if (collected.length >= paramCount)
+      return { ready: true as const, args: [...collected] };
+    return { ready: false as const };
+  };
+};
+
+class EventBus extends Subscription {
+  on(eventId: string) { return this._subscribe(eventId); }
+}
+
+const eventBus = new EventBus();
+eventBus.enable();
+
 export class Flow {
-  private curriedCache = new Map<object, Map<string, (param: Record<string, any>) => any>>();
+  static eventBus = eventBus;
+
+  private collectors = new Map<object, Map<string, ReturnType<typeof createCollector>>>();
+  private pendingThen = new Map<object, Map<string, { then?: ThenDef; catch?: ThenDef }>>();
   private logs = new Map<number, any[]>();
 
-  protected _connect(
-    serialNumber: number,
-    sourceState: State,
-    sourceEvent: string,
-    targetState: State,
-    targetMethod: string,
-    targetParam: string,
-    algorithms: ((input: any) => any)[] = [],
-    tag?: { linked?: string; linkTo?: string }
-  ) {
-    const eventName = tag?.linkTo ? `${sourceEvent}-${tag.linkTo}` : sourceEvent;
+  private route(sn: number, def: ThenDef, value: any) {
+    if (isBroadcast(def)) {
+      eventBus._publish(def.event, value);
+      return;
+    }
+    for (const t of toUnicastArray(def)!) {
+      let v = value;
+      for (const fn of t.pipe) v = fn({ logs: this.logs, payload: v });
+      this.deliver(sn, t.targetState, t.targetMethod, t.targetParam, v, t.then, t.catch);
+    }
+  }
 
+  private deliver(
+    sn: number, targetState: State, targetMethod: string, targetParam: string,
+    payload: any, thenDef?: ThenDef, catchDef?: ThenDef
+  ) {
     const method = targetState[targetMethod];
     if (typeof method !== 'function') return;
 
-    const mappedAlgorithms: any = algorithms.map(algo => map((payload: any) => algo({ logs: this.logs, payload })));
+    if (!this.collectors.has(targetState)) this.collectors.set(targetState, new Map());
+    const sc = this.collectors.get(targetState)!;
+    if (!sc.has(targetMethod)) sc.set(targetMethod, createCollector(method.length));
 
-    (sourceState.on(eventName).pipe as any)(
-      ...mappedAlgorithms
-    ).subscribe((payload: any) => {
-      if (!this.curriedCache.has(targetState)) {
-        this.curriedCache.set(targetState, new Map());
+    if (thenDef || catchDef) {
+      if (!this.pendingThen.has(targetState)) this.pendingThen.set(targetState, new Map());
+      const pt = this.pendingThen.get(targetState)!;
+      if (!pt.has(targetMethod)) pt.set(targetMethod, { then: thenDef, catch: catchDef });
+    }
+
+    const result = sc.get(targetMethod)!({ key: targetParam, value: payload });
+    if (!result.ready) return;
+
+    sc.delete(targetMethod);
+    const stored = this.pendingThen.get(targetState)?.get(targetMethod);
+    this.pendingThen.get(targetState)?.delete(targetMethod);
+    const th = stored?.then;
+    const ca = stored?.catch;
+
+    try {
+      const output = method.apply(targetState, result.args);
+      this.logs.set(sn, [...(this.logs.get(sn) ?? []), { input: result.args, output }]);
+
+      if (th && output !== undefined) {
+        if (output != null && typeof output.then === 'function')
+          output.then((v: any) => this.route(sn, th, v), (e: any) => ca && this.route(sn, ca, e));
+        else
+          this.route(sn, th, output);
       }
-      const methodCache = this.curriedCache.get(targetState)!;
+    } catch (err) {
+      if (ca) this.route(sn, ca, err);
+    }
+  }
 
-      if (!methodCache.has(targetMethod)) {
-        const initial = curried(method.bind(targetState), serialNumber, this.logs);
-        const tagValue = tag?.linked ?? '';
-        const afterTag = initial({ key: '__tag', value: tagValue });
-        methodCache.set(targetMethod, afterTag);
-      }
-
-      const step = methodCache.get(targetMethod)!;
-      const result = typeof step === 'function' ? step({ key: targetParam, value: payload }) : step;
-
-      if (typeof result !== 'function') {
-        methodCache.delete(targetMethod);
-      } else {
-        methodCache.set(targetMethod, result);
-      }
+  protected _connect(
+    serialNumber: number, sourceState: State | undefined, sourceEvent: string,
+    targetState: State, targetMethod: string, targetParam: string,
+    pipe: ((input: any) => any)[] = [], thenDef?: ThenDef, catchDef?: ThenDef
+  ) {
+    if (typeof targetState[targetMethod] !== 'function') return;
+    const src = sourceState ?? eventBus;
+    const ops: any = pipe.map(fn => map((payload: any) => fn({ logs: this.logs, payload })));
+    const source$ = (src.on(sourceEvent).pipe as any)(...ops);
+    source$.subscribe((payload: any) => {
+      this.deliver(serialNumber, targetState, targetMethod, targetParam, payload, thenDef, catchDef);
     });
   }
 }

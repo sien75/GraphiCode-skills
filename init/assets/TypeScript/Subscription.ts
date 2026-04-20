@@ -16,8 +16,8 @@ function guardEnabled<This extends { _enabled: boolean }, Args extends any[], Re
 }
 
 class Subscription {
-  private _subjects: Map<string, Subject<any>> = new Map();
-  private _enabledSubject = new Subject<boolean>();
+  protected _subjects: Map<string, Subject<any>> = new Map();
+  protected _enabledSubject = new Subject<boolean>();
   protected _enabled = false;
 
   public isEnabled(): boolean {
@@ -50,6 +50,7 @@ class Subscription {
 
   public _publish(id: string, payload?: any): void {
     if (!this._enabled) return;
+
     const subject = this._subjects.get(id);
     if (subject) {
       subject.next(payload);

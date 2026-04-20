@@ -60,7 +60,9 @@ design config:
 * designDraftSource: `figma`
 * figmaFileKeyFileName: `<designContextDirs>/basic.md`
 
+project-level docs:
+
+* architectureDoc: `ARCHITECTURE.md`
 * componentMappingFileName: `COMPONENT-MAPPING.md`
 * designSpecFileName: `DESIGN_SPEC.md`
 * designChangeLogFileName: `DESIGN_CHANGE_LOG.md`
-

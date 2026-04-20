@@ -4,27 +4,29 @@
 
 State nodes have internal private state, and are the only place where a GraphiCode-managed project stores state.
 
-State nodes have 2 types of methods for external interaction: method and event. Regardless of the method type, they all input/output serializable data.
+State nodes have 2 types of members for external interaction: method and event. Regardless of the member type, they all input/output serializable data.
+
+- **method**: receives parameters, returns a value (or throws an error). Methods must **not** publish events — all result distribution (unicast, multicast, broadcast) is handled by the flow layer via `then`/`catch`.
+- **event**: self-originated occurrences that the state initiates on its own (e.g., user actions, timers, lifecycle). Event names must use the format `StateClassName.eventName` (e.g., `UserPage.click`, `Timer.tick`).
 
 ## example
 
 This example means that this state node file has:
 
-1. three method-type methods `method1`, `method2`, and `method3`, where `method1`'s input is a `dir1/TypeX` data, `method2`'s does not have input, and `method3`'s input is `dir2/TypeD`. All method-type methods output `void`.
-2. two event-type methods `event1` and `event2`, where `event1` sends a `dir1/TypeH` event and `event2` sends a `dir1/TypeI` event via callbacks.
+1. four methods: `method1` takes `dir1/TypeX` and returns `dir1/TypeY`, `method2` takes no input and returns `void`, `method3` takes `dir2/TypeD` and returns `void`, `method4` takes `dir2/TypeOptions` and returns `void`.
+2. two self-originated events: `MyState.event1` emits `dir1/TypeH` data, `MyState.event2` emits `dir1/TypeI` data.
 3. the description of this state is explained under the description heading
 
 ```md
 # method
-method1: (x: dir1/TypeX) -> void
+method1: (x: dir1/TypeX) -> dir1/TypeY
 method2: () -> void
 method3: (d: dir2/TypeD) -> void
 method4: (options: dir2/TypeOptions) -> void
 
 # event
-event1: (cb: (h: dir1/TypeH) -> void) -> void
-event2: (cb: (i: dir1/TypeI) -> void) -> void
-
+MyState.event1: dir1/TypeH
+MyState.event2: dir1/TypeI
 
 # resides-in
 memory
@@ -35,10 +37,14 @@ This state is a memory state, which means...
 
 Here `dir1/TypeA` is a type ID with its directory prefix. The directory corresponds to one of the `typeDirs` in `graphig.md`, and the type details are defined there, which you need to look up accordingly.
 
+Methods only return values or throw errors. They do **not** publish events. All result distribution is handled by the flow layer.
+
+Events are self-originated only — things the state initiates on its own (user actions, timers, lifecycle). Event names use the `StateClassName.eventName` format to avoid naming conflicts.
+
 ## Parameter and Option Constraints
 
 * **Method Parameters**: `method` types **cannot** have optional parameters (e.g., `?`). If a method requires optional inputs, you must encapsulate them in an options object (e.g., `options: TypeOptions`). It's perfectly valid to pass an empty object (`{}`) if the type allows it, but the parameter itself cannot be optional.
-* **Event Callbacks**: Events **must** pass strictly **one** parameter. No optional parameters are allowed in event callbacks either. For example: `event: (cb: (data: TypeData) -> void) -> void`.
+* **Event Data**: Each event emits exactly **one** data type. For example: `MyState.dataLoaded: dir1/TypeData`.
 
 ## resides-in
 
@@ -56,6 +62,18 @@ Resides-in list:
 * **environment** — system environment, such as environment variables, system config, CLI arguments
 * **hardware** — hardware devices, such as sensors, USB devices, camera, microphone
 * **stdout/stdin** — standard I/O streams
+
+## Built-in Members
+
+Every state automatically has the following built-in members. They do not need to be declared in state README files:
+
+| type | signature | description |
+|------|-----------|-------------|
+| method | `enable(): void` | activate state |
+| method | `disable(): void` | deactivate state |
+| method | `getState(): any` | get all state data |
+| method | `isEnabled(): boolean` | check whether the state is currently enabled |
+| event | `StateClassName.enabledChange: boolean` | emitted when enabled flag changes |
 
 ## important notes
 

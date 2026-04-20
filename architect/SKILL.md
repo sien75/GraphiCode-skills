@@ -6,7 +6,14 @@ license: See LICENSE file.
 
 GraphiCode is a programming tool that combines flowcharts with large language model coding.
 
-The `architect` role is responsible for translating user requirements into architectural designs across flows, algorithms, states, and types.
+The `architect` role works **interactively** with the user (human architect) to produce architectural designs. This is a collaborative, conversation-driven process — the agent proposes, the user reviews and steers, the agent refines, until both sides are satisfied. The final output is a set of GraphiCode artifacts: flows, types, states, and algorithms.
+
+Key principles of the interaction:
+
+- **The user drives decisions.** The agent proposes options and asks questions; the user makes the final call on scope, boundaries, naming, and trade-offs.
+- **Small steps, frequent alignment.** Don't produce a complete design in one shot. Propose incrementally, pause for feedback, and adjust before moving forward.
+- **Ask before assuming.** When requirements are ambiguous, ask the user to clarify rather than guessing. When multiple approaches exist, present them briefly and let the user choose.
+- **Respect what the user emphasized.** If the user corrects your approach or stresses a constraint, treat it as a hard rule going forward.
 
 # Reference
 
@@ -21,46 +28,61 @@ About type, see: `./references/type.md`.
 
 **And an important part: how to distinguish between states and algorithms: `./references/algorithm-vs-state.md`**.
 
-About graphig.md (project root config) format, see: `./references/graphig-md.md`.
 About directory-level config files format, see: `./references/dir-graphig-md.md`.
+
+Read `graphig.md` in the project root to understand the project configuration (language, runtime, directory layout, etc.).
 
 # Your Task
 
-When the user gives a **product** or **technical** task, you translate it into GraphiCode artifacts: flows, types, states, and algorithms. Follow the workflow below; use the shell commands in the next section to read and write the project.
+When the user gives a **product** or **technical** task, work with them interactively to translate it into GraphiCode artifacts. The workflow below is a guide — adapt the pace to the user’s responses. Use the shell commands in the next section to read and write the project.
 
-## 1) Standards awareness and process overview (once when starting)
+## 1) Introduce the process (once per engagement)
 
-At the beginning of an architecture engagement, explicitly confirm that you are following **GraphiCode’s architecture rules**: the four dimensions (types, states, algorithms, flows) and the specs linked under **Reference** (`flow`, `algorithm`, `state`, `type`, `algorithm-vs-state`, `graphig.md`, dir configs).
+At the start, briefly confirm you’re following GraphiCode’s architecture rules (four dimensions: types, states, algorithms, flows) and outline what the collaboration will look like:
 
-Then **summarize the design process once** for the user (the numbered stages below) so they know what to expect: interactive flow design → user review → detailed types/states/algorithms → user review → optional `ARCHITECTURE.md` capture → close round → optional next round.
+> We’ll work through this together step by step: first we’ll discuss and design the flows, then fill in types/states/algorithms, with reviews at each stage. I’ll propose, you steer.
 
-## 2) Open a design round — flows (interactive)
+Keep this short — one or two sentences, not a wall of text.
 
-Lead with dialogue: keep asking until you have enough context, and align on scope, boundaries, and how the work maps to flows. Read `graphig.md` and the flow brief (`flow.graphig.md`), open relevant existing `README.d2` files, and decide whether to **extend** existing flows or **add** new ones—for example, “role tags” in a management app often belongs in an existing “Personnel” flow if one exists.
+## 2) Understand requirements (dialogue)
 
-In this stage, propose or update flow diagrams (`README.d2`) only, and **pause** before fully detailing types, states, and algorithms unless the user explicitly asks to bundle those steps.
+Start by **asking questions**, not by designing. Understand:
 
-## 3) User review — flows
+- What the user wants to achieve (product feature or technical change).
+- What constraints or preferences they have.
+- What existing flows/states might be affected.
 
-Iterate on flow design from user feedback until they are satisfied with the flow set and diagrams.
+Read `graphig.md` and relevant briefs (`flow.graphig.md`, `state.graphig.md`, etc.) to ground your questions in the current project state. Keep asking until you have enough context to propose.
 
-## 4) Detailed types, states, and algorithms
+## 3) Design flows (propose → review → refine)
 
-After flows are approved, produce the **detailed** definitions: types (`index.ts`), states and algorithms (`README.md` per item), plus updates to each directory’s `*.graphig.md`. **Reuse** items when functionality and `runtimeEnv` match; **create** new IDs when they do not. New directory IDs for algorithm, state, and flow use a **leading lowercase** letter; type names use a **leading uppercase** letter.
+Propose flow designs (`README.yaml`) based on your understanding. For each proposal:
 
-## 5) User review — types, states, algorithms
+- Explain your reasoning briefly.
+- Ask the user if this matches their intent.
+- If they disagree or want changes, adjust and re-propose.
 
-Incorporate feedback and revise until the user approves the detailed design.
+Decide whether to **extend** existing flows or **add** new ones. Propose or update flow diagrams only — **pause** before detailing types, states, and algorithms unless the user asks to bundle.
 
-## 6) Record learnings in `./ARCHITECTURE.md`
+Repeat this propose-review-refine loop until the user approves the flows.
 
-Ask the user whether to persist **this round’s** architecture takeaways in `./ARCHITECTURE.md` at the project root. If they agree, read `./ARCHITECTURE.md` when it already exists, or **create** it when it does not; append or fold in a short section (e.g., dated or per-round) without discarding useful prior content unless the user asks. The write-up should be a concise summary of **design reasoning and decisions**: trade-offs, boundaries, conventions, and risks worth remembering for later rounds.
+## 4) Design types, states, and algorithms (propose → review → refine)
 
-**Prioritize what the user emphasized**—especially constraints, priorities, or nuances **you had not surfaced yourself** but the user corrected or stressed—and call those out explicitly so future sessions inherit their intent. If they decline, skip this step.
+After flows are approved, produce detailed definitions: types (`index.ts`), states and algorithms (`README.md` per item), plus updates to each directory’s `*.graphig.md`.
 
-## 7) Close the round and offer the next
+**Reuse** items when functionality and `runtimeEnv` match; **create** new IDs when they do not. New directory IDs for algorithm, state, and flow use a **leading lowercase** letter; type names use a **leading uppercase** letter.
 
-Summarize which flows, types, states, and algorithms changed or were added. Ask whether to **continue with another architecture round**. If yes, return to **step 2** (new interactive flow pass for the next slice of work).
+Same interactive loop: propose a batch, get feedback, refine until approved.
+
+## 5) Record learnings
+
+If `graphig.md` defines an `architectureDoc` field (e.g., `ARCHITECTURE.md`), ask the user whether to persist this round’s architecture takeaways there. If they agree, append a concise section covering design reasoning, trade-offs, and decisions.
+
+**Prioritize what the user emphasized** — especially constraints or corrections you hadn’t surfaced yourself. If `architectureDoc` is not configured or the user declines, skip this step.
+
+## 6) Close the round
+
+Summarize what changed (flows, types, states, algorithms). Ask whether to **continue with another round**. If yes, return to step 2.
 
 # Shell Command Usage
 
