@@ -10,7 +10,7 @@ class TestState extends State {
 class TestFlow extends Flow {
   public connect(
     sn: number, sourceState: any, sourceEvent: string,
-    targetState: any, targetMethod: string, targetParam: string,
+    targetState: any, targetMethod: string, targetParam?: string,
     pipe: ((input: any) => any)[] = [], thenDef?: ThenDef, catchDef?: ThenDef
   ) {
     this._connect(sn, sourceState, sourceEvent, targetState, targetMethod, targetParam, pipe, thenDef, catchDef);
@@ -309,9 +309,44 @@ console.log('\nTest 9: Promise support');
   }, 0);
 }
 
-// ─── Test 10: @curried flow isolation ────────────────────
+// ─── Test 10: Zero-param call ────────────────────────────
 
-console.log('\nTest 10: @curried flow isolation');
+console.log('\nTest 10: Zero-param call');
+{
+  const flow = new TestFlow();
+  const page = new TestState();
+  page.enable();
+
+  const calls: any[] = [];
+  class Auth extends State {
+    @curried
+    logout() { calls.push('logged out'); return 'done'; }
+  }
+  const auth = new Auth();
+  auth.enable();
+
+  const renderCalls: any[] = [];
+  class Page extends State {
+    @curried
+    render(config: any) { renderCalls.push(config); }
+  }
+  const page2 = new Page();
+  page2.enable();
+
+  flow.connect(0, page, 'logoutClick', auth, 'logout', undefined, [],
+    { targetState: page2, targetMethod: 'render', targetParam: 'config', pipe: [] }
+  );
+  page.emit('logoutClick', undefined);
+
+  assert(calls.length === 1, 'logout called once');
+  assert(calls[0] === 'logged out', 'logout executed');
+  assert(renderCalls.length === 1, 'then routed');
+  assert(renderCalls[0] === 'done', 'then got return value');
+}
+
+// ─── Test 11: @curried flow isolation ────────────────────
+
+console.log('\nTest 11: @curried flow isolation');
 {
   const flow1 = new TestFlow();
   const flow2 = new TestFlow();

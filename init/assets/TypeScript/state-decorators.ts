@@ -23,13 +23,13 @@ function curried<This extends object>(
   const paramCount = target.length;
   const collectorsKey = Symbol('collectors');
 
-  return function (this: any, callerId: any, param: { key: string; value: any }) {
+  return function (this: any, callerId: any, param: { key: string | undefined; value: any }) {
     if (!this[collectorsKey]) this[collectorsKey] = new Map();
     const collectors: Map<any, Map<string, any>> = this[collectorsKey];
 
     if (!collectors.has(callerId)) collectors.set(callerId, new Map());
     const collected = collectors.get(callerId)!;
-    collected.set(param.key, param.value);
+    if (param.key !== undefined) collected.set(param.key, param.value);
 
     if (collected.size >= paramCount) {
       collectors.delete(callerId);

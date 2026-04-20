@@ -49,14 +49,14 @@ Fields:
 - `pipe`: Optional list of algorithm functions. Each receives `{ logs, payload }` and returns a transformed value. Executes top-to-bottom. The final output becomes the value for `call.param`.
 - `call.state`: The target state that owns the method.
 - `call.method`: The method to call.
-- `call.param`: Which parameter of the method this connection fills.
+- `call.param`: Optional. Which parameter of the method this connection fills. If the method takes zero parameters, omit `call.param` — the method executes immediately when the event fires.
 - `then`: Optional. Routes the method's return value. See "then and catch" below.
 - `catch`: Optional. Routes a thrown error (or Promise rejection). See "then and catch" below.
 
 Only **event -> method** connections are allowed:
 
 - `on` must reference a state event (with `state`) or a flow broadcast event (without `state`).
-- `call` must reference a state method and one of its parameters.
+- `call` must reference a state method. If the method takes parameters, one of its parameters must be specified via `call.param`. If the method takes zero parameters, `call.param` is omitted.
 
 ## then and catch
 
@@ -130,8 +130,8 @@ pipe:
 
 A method may require multiple parameters, each provided by a different connection. The flow tracks which parameters have been filled:
 
-- Each connection fills exactly one parameter (specified by `call.param`).
-- When **all** parameters of a method have received values, the method executes automatically.
+- Each connection fills exactly one parameter (specified by `call.param`), or calls a zero-parameter method directly (when `call.param` is omitted).
+- When **all** parameters of a method have received values, the method executes automatically. Zero-parameter methods execute immediately on event.
 
 ## event naming
 
@@ -146,8 +146,8 @@ State methods only return values or throw errors. They do **not** call `_publish
 
 1. Only `event -> method` connections are allowed.
 2. Sequence numbers (`id`) must be unique and consecutive, starting from 0.
-3. Each connection fills exactly one parameter of the target method.
-4. A method executes automatically when all its parameters are collected.
+3. Each connection fills exactly one parameter of the target method, or calls a zero-parameter method directly (no `call.param`).
+4. A method executes automatically when all its parameters are collected. Zero-parameter methods execute immediately.
 5. `on` with `state`: listens to a state self-originated event. `on` without `state`: listens to a flow broadcast event on the global EventBus.
 6. `then` routes the method's **return value**: unicast (object with `state`), multicast (array), or broadcast (object with `event`).
 7. `catch` routes a **thrown error or Promise rejection**: same three modes as `then`.
@@ -304,6 +304,27 @@ connections:
 
 - `on.event: loginSuccess` has no `state` — it listens to the global EventBus where flow broadcast events are published.
 - This demonstrates the two types of `on`: with `state` (state self-originated events) and without `state` (flow broadcast events).
+
+## example 5: zero-parameter call
+
+```yaml
+connections:
+  - id: 0
+    on:
+      state: UserPage
+      event: UserPage.logoutClick
+    call:
+      state: Auth
+      method: logout
+    then:
+      state: UserPage
+      method: render
+      param: config
+```
+
+- `Auth.logout` takes zero parameters, so `call.param` is omitted.
+- The method executes immediately when `UserPage.logoutClick` fires.
+- `then` still works as usual — the return value of `logout` is routed to `UserPage.render`.
 
 # built-in methods and events
 

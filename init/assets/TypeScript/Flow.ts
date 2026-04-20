@@ -4,7 +4,7 @@ import State from './State';
 export type UnicastDef = {
   targetState: State;
   targetMethod: string;
-  targetParam: string;
+  targetParam?: string;
   pipe: ((input: any) => any)[];
   then?: ThenDef;
   catch?: ThenDef;
@@ -44,7 +44,7 @@ export class Flow {
   }
 
   private deliver(
-    sn: number, targetState: State, targetMethod: string, targetParam: string,
+    sn: number, targetState: State, targetMethod: string, targetParam: string | undefined,
     payload: any, thenDef?: ThenDef, catchDef?: ThenDef
   ) {
     const method = targetState[targetMethod];
@@ -57,7 +57,9 @@ export class Flow {
     }
 
     try {
-      const output = method.call(targetState, this, { key: targetParam, value: payload });
+      const output = targetParam
+        ? method.call(targetState, this, { key: targetParam, value: payload })
+        : method.call(targetState, this, { key: undefined, value: undefined });
 
       if (output === undefined) return;
 
@@ -84,7 +86,7 @@ export class Flow {
 
   protected _connect(
     serialNumber: number, sourceState: State | undefined, sourceEvent: string,
-    targetState: State, targetMethod: string, targetParam: string,
+    targetState: State, targetMethod: string, targetParam?: string,
     pipe: ((input: any) => any)[] = [], thenDef?: ThenDef, catchDef?: ThenDef
   ) {
     if (typeof targetState[targetMethod] !== 'function') return;
