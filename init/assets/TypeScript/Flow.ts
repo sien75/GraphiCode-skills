@@ -1,11 +1,5 @@
-import { Observable, map } from 'rxjs';
-import Subscription from './Subscription';
-
-type State = {
-  on(eventName: string): Observable<any>;
-  _publish?(id: string, payload?: any): void;
-  [key: string]: any;
-};
+import { map } from 'rxjs';
+import State from './State';
 
 export type UnicastDef = {
   targetState: State;
@@ -28,27 +22,12 @@ const isBroadcast = (def: ThenDef): def is BroadcastDef =>
 const toUnicastArray = (def: ThenDef): UnicastDef[] | null =>
   isBroadcast(def) ? null : Array.isArray(def) ? def : [def];
 
-const createCollector = (paramCount: number) => {
-  const collected: { key: string; value: any }[] = [];
-  return (param: { key: string; value: any }) => {
-    collected.push(param);
-    if (collected.length >= paramCount)
-      return { ready: true as const, args: [...collected] };
-    return { ready: false as const };
-  };
-};
-
-class EventBus extends Subscription {
-  on(eventId: string) { return this._subscribe(eventId); }
-}
-
-const eventBus = new EventBus();
+const eventBus = new State();
 eventBus.enable();
 
 export class Flow {
   static eventBus = eventBus;
 
-  private collectors = new Map<object, Map<string, ReturnType<typeof createCollector>>>();
   private pendingThen = new Map<object, Map<string, { then?: ThenDef; catch?: ThenDef }>>();
   private logs = new Map<number, any[]>();
 
@@ -71,36 +50,34 @@ export class Flow {
     const method = targetState[targetMethod];
     if (typeof method !== 'function') return;
 
-    if (!this.collectors.has(targetState)) this.collectors.set(targetState, new Map());
-    const sc = this.collectors.get(targetState)!;
-    if (!sc.has(targetMethod)) sc.set(targetMethod, createCollector(method.length));
-
     if (thenDef || catchDef) {
       if (!this.pendingThen.has(targetState)) this.pendingThen.set(targetState, new Map());
       const pt = this.pendingThen.get(targetState)!;
       if (!pt.has(targetMethod)) pt.set(targetMethod, { then: thenDef, catch: catchDef });
     }
 
-    const result = sc.get(targetMethod)!({ key: targetParam, value: payload });
-    if (!result.ready) return;
-
-    sc.delete(targetMethod);
-    const stored = this.pendingThen.get(targetState)?.get(targetMethod);
-    this.pendingThen.get(targetState)?.delete(targetMethod);
-    const th = stored?.then;
-    const ca = stored?.catch;
-
     try {
-      const output = method.apply(targetState, result.args);
-      this.logs.set(sn, [...(this.logs.get(sn) ?? []), { input: result.args, output }]);
+      const output = method.call(targetState, this, { key: targetParam, value: payload });
 
-      if (th && output !== undefined) {
+      if (output === undefined) return;
+
+      this.logs.set(sn, [...(this.logs.get(sn) ?? []), { method: targetMethod, param: targetParam, output }]);
+
+      const stored = this.pendingThen.get(targetState)?.get(targetMethod);
+      this.pendingThen.get(targetState)?.delete(targetMethod);
+      const th = stored?.then;
+      const ca = stored?.catch;
+
+      if (th) {
         if (output != null && typeof output.then === 'function')
           output.then((v: any) => this.route(sn, th, v), (e: any) => ca && this.route(sn, ca, e));
         else
           this.route(sn, th, output);
       }
     } catch (err) {
+      const stored = this.pendingThen.get(targetState)?.get(targetMethod);
+      this.pendingThen.get(targetState)?.delete(targetMethod);
+      const ca = stored?.catch;
       if (ca) this.route(sn, ca, err);
     }
   }
