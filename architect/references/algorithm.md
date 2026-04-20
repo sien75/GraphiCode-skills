@@ -8,19 +8,19 @@ Algorithm nodes receive input, process it through their own logic, and produce o
 
 This is an example of an algorithm node file, meaning:
 
-1. this algorithm receives a payload containing fields a (TypeA), b (TypeB), c (TypeC), and d (TypeD)
+1. this algorithm receives a payload containing fields a (`stateDir/Auth.TypeA`), b (`stateDir/Auth.TypeB`), c (`stateDir/Store.TypeC`), and d (`stateDir/Store.TypeD`)
 2. executes the description under the description heading
-3. produces an output with fields e (TypeE), f (TypeF), and g (TypeG)
+3. produces an output with fields e (`stateDir/Store.TypeE`), f (`stateDir/Store.TypeF`), and g (`stateDir/Store.TypeG`)
 
 ```md
 # io
-(a: TypeA, b: TypeB, c: TypeC, d: TypeD) -> {e: TypeE, f: TypeF, g: TypeG}
+(a: stateDir/Auth.TypeA, b: stateDir/Auth.TypeB, c: stateDir/Store.TypeC, d: stateDir/Store.TypeD) -> {e: stateDir/Store.TypeE, f: stateDir/Store.TypeF, g: stateDir/Store.TypeG}
 
 # description
 Transform a and b to e and f.
 ```
 
-The first line is the **signature**: `(inputs...) -> output`. Each parameter follows the format `paramName: TypeName`. Types are defined in the state README files that participate in the flow where this algorithm is used — look up the relevant state's `# type` section for the type definition.
+The first line is the **signature**: `(inputs...) -> output`. Each parameter follows the format `paramName: stateDir/StateName.TypeName`, where `stateDir` corresponds to one of the `stateDirs` in `graphig.md`, `StateName` is the state ID, and `TypeName` is a type defined in that state's `# type` section.
 
 ## important notes
 
