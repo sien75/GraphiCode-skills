@@ -25,6 +25,6 @@ state2.enable();
 // inject mock data in design mode
 
 if (process.env.DESIGN_MODE === '1') {
-  // TODO: inject mock data for design mode
+  import('<entryDir>/playground');
 }
 ```

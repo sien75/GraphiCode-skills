@@ -86,7 +86,36 @@ Then, read the `state.graphig.md` file under each state directory. Any state who
 stateId1.enable(); // assuming stateId1's description contains the [START] marker
 ```
 
-## 5. Import launcher.ts in the project's entry file
+## 5. Write the playground.ts file
+
+Refer to the template `./references/playground.md` and create/update `<entryDir>/playground.ts`. This file is dynamically imported by `launcher.ts` in design mode.
+
+For each page state under `stateDirs.pages`:
+
+1. Import the page state instance (the default export from the page's `index.tsx`).
+2. Import the mock data exported from the page's test file (`<stateDirs.pages>/<stateId>/<testFileName>`).
+3. Build a page registry mapping route paths to `{ state, className, mockData }`.
+
+The `PageClassName` must match the actual State class name defined in the page's `index.tsx` (e.g., `LoginPageState`).
+
+If a page's test file does not exist yet, add an import comment placeholder for it so the file is ready to be filled in later.
+
+### Route detection
+
+You must read the project's routing configuration to determine:
+
+- Whether the project uses **path routing** or **hash routing**.
+- What route path each page corresponds to.
+
+Then configure the page registry and route change listeners accordingly (see the template for both patterns).
+
+### Scenario switcher UI
+
+The playground creates a floating button panel at the bottom-right corner. Each button is a numbered circle representing a mock scenario. Hovering shows the scenario name, clicking injects that scenario's mock data via `_publish`. The first scenario is selected by default.
+
+On route change, the switcher automatically updates to show the current page's scenarios and injects the first one.
+
+## 6. Import launcher.ts in the project's entry file
 
 For React projects, you need to first find the project's entry file. The entry file is typically the first file that executes when the application starts, for example `src/app.tsx`, `src/index.tsx`, `src/main.tsx`, etc. You can check the project's build configuration or look at common entry file locations to determine which file it is.
 
