@@ -6,6 +6,7 @@
 
 ### runtimeEnv: Bun
 
+* writingLanguage: (defaults to the language the user is conversing in)
 * entryDir: `src/entry`
 * flowDirs: `src/flows`
 * algorithmDirs: `src/algorithms`
@@ -20,6 +21,8 @@
 ## devEnv Node.js
 
 ### runtimeEnv: Browser
+
+* writingLanguage: (defaults to the language the user is conversing in)
 
 dir config:
 

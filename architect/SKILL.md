@@ -29,7 +29,7 @@ About state, see: `./references/state.md`.
 
 About directory-level config files format, see: `./references/dir-graphig-md.md`.
 
-Read `graphig.md` in the project root to understand the project configuration (language, runtime, directory layout, etc.).
+Read `graphig.md` in the project root to understand the project configuration (language, runtime, directory layout, `writingLanguage`, etc.).
 
 # Your Task
 
@@ -141,4 +141,6 @@ echo 'new config' > ./<stateDir>/state.graphig.md
 
 When the task is complete, summarize which flows/algorithms/states were changed and report back to the user.
 
-Remember to respond in the language the user uses and write file in English.
+Remember to respond in the language the user uses.
+
+Write file content (descriptions, READMEs, flow comments) in the `writingLanguage` configured in `graphig.md`.

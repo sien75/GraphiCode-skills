@@ -51,7 +51,6 @@ When the user describes a change (e.g., "make the title bigger", "change backgro
 
 When applying modifications, actively watch for changes that might indicate the designer is establishing or updating a design pattern:
 
-- **New color values** not in the current spec (e.g., "change this to #1890ff")
 - **New spacing/sizing patterns** (e.g., "all card paddings should be 16px")
 - **New typography rules** (e.g., "section titles should be 18px semibold")
 - **New component patterns** (e.g., "all error states should show a red border")

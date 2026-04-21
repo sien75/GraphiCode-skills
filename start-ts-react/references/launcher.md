@@ -10,12 +10,21 @@ import state2 from "<state2Dir>/state2";
 import state3 from "<state3Dir>/state3";
 import state4 from "<state4Dir>/state4";
 
-// import all flows
+// import all flows (skip in design mode)
 
-import "<flow1Dir>/flow1";
-import "<flow2Dir>/flow2";
+if (process.env.DESIGN_MODE !== '1') {
+  import("<flow1Dir>/flow1");
+  import("<flow2Dir>/flow2");
+}
 
 // enable the necessary states
 
 state1.enable();
 state2.enable();
+
+// inject mock data in design mode
+
+if (process.env.DESIGN_MODE === '1') {
+  // TODO: inject mock data for design mode
+}
+```

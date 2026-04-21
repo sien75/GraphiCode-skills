@@ -25,6 +25,7 @@ The following configurations need to be read from `graphig.md`:
 | `componentMappingFileName` | Component mapping file to update with new component entries |
 | `designSpecFileName` | Design spec file for style compliance |
 | `designChangeLogFileName` | Design change log file name |
+| `writingLanguage` | Natural language for writing descriptions, comments, etc. |
 
 ## Step 1: Scan and Analyze Pages
 
@@ -190,6 +191,10 @@ After writing the change log, **automatically create a git commit** including al
 1. **Standard import/export**: Use ES6 `import`/`export` in all tsx files.
 2. **Less Modules**: Use `import styles from './index.less'` and `className={styles.xxx}`. Files keep the `.less` extension.
 3. **Full TypeScript**: Use complete TypeScript syntax including `interface`, `type`, generics, and type annotations.
+
+## Writing Language
+
+Write descriptions, comments, and README content in the `writingLanguage` configured in `graphig.md`.
 
 ## Less Nesting Rule
 

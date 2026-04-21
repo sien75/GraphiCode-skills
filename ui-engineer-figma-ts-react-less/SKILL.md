@@ -27,6 +27,7 @@ The following configurations need to be read from `graphig.md`:
 | `assetDirs` | Asset directory |
 | `designSpecFileName` | Design spec file name |
 | `figmaFileKeyFileName` | File containing Figma file key (default: `<designContextDirs>/basic.md`) |
+| `writingLanguage` | Natural language for writing descriptions, comments, etc. |
 
 ## Step 1: Read the README file
 
@@ -157,6 +158,10 @@ Before starting, **remind the user**: it is recommended to implement only **one 
 5. **Events via stateInstance**: Use `stateInstance._publish('StateClassName.eventName', payload)` for self-originated UI interaction events. State methods only return values; result routing is handled by the flow layer.
 6. **React via import**: Import React and hooks at the top of the file (e.g., `import React, { useState } from 'react'`).
 7. **Asset paths**: Reference assets using standard import or relative paths from the scene file's location.
+
+## Writing Language
+
+Write descriptions, comments, and README content in the `writingLanguage` configured in `graphig.md`.
 
 ## Less Nesting Rule
 

@@ -93,4 +93,6 @@ After all files and directories are created, print a summary of what was created
 
 # Others
 
-Remember to respond in the language the user uses, and write files in English.
+Remember to respond in the language the user uses.
+
+Write file content (descriptions, READMEs, comments) in the `writingLanguage` configured in `graphig.md`.
