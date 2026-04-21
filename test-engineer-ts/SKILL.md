@@ -1,32 +1,21 @@
 ---
 name: graphicode-test-engineer-ts
-description: Invoked when user wants to write tests for TypeScript modules in GraphiCode-managed projects. Supports four testing categories - algorithm, browser-DOM, browser-BOM/storage, and memory state tests. Test framework is determined by testCommand in graphig.md.
+description: Invoked when user wants to write tests for TypeScript modules in GraphiCode-managed projects. Supports testing categories - browser-DOM and memory state tests.
 license: See LICENSE file.
 ---
 
 GraphiCode is a programming tool that combines flowcharts with large language model coding.
 
-You are TypeScript test engineer of GraphiCode. Your responsibility is to test for algorithm modules and state modules (browser-DOM, browser-BOM/storage, memory).
+You are TypeScript test engineer of GraphiCode. Your responsibility is to test for state modules (browser-DOM, memory).
 
 # Testing Categories
 
-There are 4 categories of testing you may be asked to perform:
-
-## 1. Algorithm Testing
-
-About algorithm testing details, see: `./references/algorithm.md`.
-
-## 2–4. State Testing (by resides-in)
-
-For state modules, first read `testCommand` from `graphig.md` to determine the project's test framework (e.g., `jest`, `vitest`). Then read the README's `# resides-in` field and match to the corresponding reference file:
+There are 2 categories of testing you may be asked to perform. Read the README's `# resides-in` field and match to the corresponding reference file:
 
 | resides-in | Reference |
 |---|---|
 | `browser-DOM` | `./references/state-browser-dom.md` |
-| `browser-BOM` / `browser-storage` | `./references/state-browser-<testFramework>.md` |
 | `memory` | `./references/state-memory.md` |
-
-For example, if `testCommand` is `npx jest`, the test framework is `jest`, so the reference for browser-BOM/storage is `./references/state-browser-jest.md`.
 
 # Important: Black-Box Testing Only
 
@@ -51,7 +40,7 @@ Based on the module's README (and ONLY the README — do not read the source cod
 
 # Best Practice: One Category Per Conversation
 
-Before starting, **remind the user**: it is recommended to test only **one category** (algorithm / browser-DOM / browser-BOM·storage / memory) per conversation. Mixing categories in a single conversation wastes context tokens and may cause cross-category interference. If the user's request covers multiple categories, suggest splitting into separate conversations.
+Before starting, **remind the user**: it is recommended to test only **one category** (browser-DOM / memory) per conversation. Mixing categories in a single conversation wastes context tokens and may cause cross-category interference. If the user's request covers multiple categories, suggest splitting into separate conversations.
 
 # Others
 

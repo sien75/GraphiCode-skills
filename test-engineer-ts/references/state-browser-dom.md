@@ -1,6 +1,6 @@
 # Browser-DOM State Testing
 
-Browser-DOM state testing verifies that a `browser-DOM` state module renders the correct UI for each data-view mapping described in its README. It uses `chrome-devtools-mcp` to inspect elements and capture screenshots. No automated test framework is needed — testing is driven through a playground and `chrome-devtools-mcp`.
+Browser-DOM state testing verifies that a `browser-DOM` state module renders the correct UI for each data-view mapping described in its README.
 
 ## Prerequisites
 
@@ -53,24 +53,12 @@ loginCodeCountdown: number
 The mock data would be:
 
 ```ts
-const mockCases = [
-  {
-    name: 'login-initial',
-    state: { status: 'login', email: '', loginCodeCountdown: 0 },
-  },
-  {
-    name: 'login-prefilled',
-    state: { status: 'login', email: 'user@example.com', loginCodeCountdown: 0 },
-  },
-  {
-    name: 'loginCodeSended',
-    state: { status: 'loginCodeSended', email: 'user@example.com', loginCodeCountdown: 30 },
-  },
-  {
-    name: 'loginLogging',
-    state: { status: 'loginLogging', email: 'user@example.com', loginCodeCountdown: 0 },
-  },
-];
+export const mockData = {
+  'login-initial': { status: 'login', email: '', loginCodeCountdown: 0 },
+  'login-prefilled': { status: 'login', email: 'user@example.com', loginCodeCountdown: 0 },
+  'loginCodeSended': { status: 'loginCodeSended', email: 'user@example.com', loginCodeCountdown: 30 },
+  'loginLogging': { status: 'loginLogging', email: 'user@example.com', loginCodeCountdown: 0 },
+};
 ```
 
 Cover at minimum:
@@ -81,66 +69,28 @@ Cover at minimum:
 
 ## Step 4: Write testFileName
 
-Write `<stateDirs.pages>/<stateId>/<testFileName>`. This file must export exactly three things for the playground script to consume:
-
-| Export | Type | Description |
-|---|---|---|
-| `default` | React Component | The connected component to render |
-| `mockCases` | `{ name: string, state: object }[]` | Mock data for each scenario |
-| `stateInstance` | State instance | The state class instance (playground will call `enable()` on it) |
-| `stateChangeEventName` | `string` | The state change event name used to trigger re-render (e.g., `'LoginPageState.__stateChange'`) |
-
-The playground script handles URL query parsing (`?mock=<caseName>`), `stateInstance.enable()`, state injection via `stateInstance._publish(stateChangeEventName, mockState)`, and rendering.
-
-The module's `<mainFileName>` always exports `default` (the page component), `stateInstance`, and `stateChangeEventName` with fixed names. **You MUST NOT read the implementation file** — just import these fixed exports directly.
+Write `<stateDirs.pages>/<stateId>/<testFileName>`. This file only needs to export `mockData` for now.
 
 ### Example
 
-```tsx
-import Page, { stateInstance, stateChangeEventName } from './index';
-
+```ts
 // ===== Mock Data =====
 
-export const mockCases = [
-  {
-    name: 'login-initial',
-    state: { status: 'login', email: '', loginCodeCountdown: 0, forgetPasswordCodeCountdown: 0 },
-  },
-  {
-    name: 'loginCodeSended',
-    state: { status: 'loginCodeSended', email: 'user@example.com', loginCodeCountdown: 30, forgetPasswordCodeCountdown: 0 },
-  },
-  {
-    name: 'loginLogging',
-    state: { status: 'loginLogging', email: 'user@example.com', loginCodeCountdown: 0, forgetPasswordCodeCountdown: 0 },
-  },
-];
+export const mockData = {
+  'login-initial': { status: 'login', email: '', loginCodeCountdown: 0, forgetPasswordCodeCountdown: 0 },
+  'loginCodeSended': { status: 'loginCodeSended', email: 'user@example.com', loginCodeCountdown: 30, forgetPasswordCodeCountdown: 0 },
+  'loginLogging': { status: 'loginLogging', email: 'user@example.com', loginCodeCountdown: 0, forgetPasswordCodeCountdown: 0 },
+};
 
-// ===== Export component =====
-
-export default Page;
-export { stateInstance, stateChangeEventName };
+// TODO: DOM visual testing is not yet implemented.
+// In the future, this file should also export the component and state instance,
+// and run playground-based visual testing against each mock case.
 ```
-
-The playground script will pick up the exported `mockCases` and default component, handle URL query parsing (`?mock=<caseName>`), state injection, and rendering automatically.
 
 ### Key points
 
 - **Mock case names must not contain spaces** — they are used as URL query values.
-- The file imports directly from the module's `<mainFileName>` — do NOT import from internal/private files.
 
 ## Step 5: Execute
 
-The playground requires `esbuild`. Before running, read the `<projectConfig>` file (e.g., `package.json`) to check whether `esbuild` is already installed. If not:
-
-1. Ask the user for permission to install `esbuild` as a devDependency.
-2. If approved, install it and add `esbuild` to `feLibraries` in `graphig.md`.
-
-Then proceed:
-
-1. Run `<singleFilePlaygroundCommand> <stateDirs.pages>/<stateId>` and read the port number from stdout.
-2. For each mock case:
-   - Navigate to `http://localhost:<port>?mock=<mockCase.name>` via `chrome-devtools-mcp`.
-   - Inspect the page (elements and screenshot) and judge whether the UI matches the README's data-view mapping description for this scenario.
-3. Close the playground process.
-4. Append results to `<stateDirs.pages>/<stateId>/<testReportFileName>` (where `testReportFileName` is read from `graphig.md`). Include: which cases passed, which failed, and the reasoning.
+> **Deferred.** DOM visual testing via playground is not yet conducted. Only mock data export is required for now. When DOM testing infrastructure is ready, this step should run the playground and verify each mock case visually.
