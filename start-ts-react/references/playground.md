@@ -4,16 +4,20 @@ This file is imported by `launcher.ts` in design mode. It imports mock data from
 
 Test files under `stateDirs.pages` export mock data (not self-executing). Each test file exports a `mockData` object where `key = scenario name`, `value = state data for that scenario`. This file imports that data, injects the first scenario by default, and provides a floating UI to switch scenarios.
 
+**Important**: Scenario names (the keys in `mockData`) must be written in the `writingLanguage` configured in `graphig.md`, since they are displayed directly on the switcher buttons.
+
 This is an example, you should replace it with the actual.
 
 ## mockData format
 
 ```ts
 // mockData is { [scenarioName: string]: { [stateField: string]: any } }
+// Scenario names are displayed on UI buttons, so use clear, readable names
+// in the writingLanguage configured in graphig.md.
 export const mockData = {
-  'login-default': { status: 'login', email: '', loginCodeCountdown: 0 },
-  'login-code-sent': { status: 'loginCodeSended', email: 'test@example.com', loginCodeCountdown: 30 },
-  'forget-password': { status: 'forgetPassword', email: '', forgetPasswordCodeCountdown: 0 },
+  '默认登录': { status: 'login', email: '', loginCodeCountdown: 0 },
+  '验证码已发送': { status: 'loginCodeSended', email: 'test@example.com', loginCodeCountdown: 30 },
+  '忘记密码': { status: 'forgetPassword', email: '', forgetPasswordCodeCountdown: 0 },
 };
 ```
 
@@ -89,34 +93,19 @@ function renderButtons() {
   container.innerHTML = '';
 
   const scenarios = Object.keys(currentEntry.mockData);
-  scenarios.forEach((name, i) => {
+  scenarios.forEach((name) => {
     const btn = document.createElement('div');
     const isActive = name === currentScenario;
 
     btn.style.cssText = `
-      width: 36px; height: 36px; border-radius: 50%;
+      padding: 6px 14px; border-radius: 18px;
       background: ${isActive ? '#1677ff' : '#fff'};
       color: ${isActive ? '#fff' : '#333'};
       border: 2px solid ${isActive ? '#1677ff' : '#d9d9d9'};
-      display: flex; align-items: center; justify-content: center;
       cursor: pointer; font-size: 12px; font-weight: bold;
-      transition: all 0.2s; position: relative;
+      white-space: nowrap; transition: all 0.2s;
     `;
-    btn.textContent = String(i + 1);
-
-    // tooltip
-    const tooltip = document.createElement('div');
-    tooltip.textContent = name;
-    tooltip.style.cssText = `
-      position: absolute; right: 44px; top: 50%; transform: translateY(-50%);
-      background: rgba(0,0,0,0.75); color: #fff; padding: 4px 8px;
-      border-radius: 4px; font-size: 12px; white-space: nowrap;
-      pointer-events: none; opacity: 0; transition: opacity 0.15s;
-    `;
-    btn.appendChild(tooltip);
-
-    btn.addEventListener('mouseenter', () => { tooltip.style.opacity = '1'; });
-    btn.addEventListener('mouseleave', () => { tooltip.style.opacity = '0'; });
+    btn.textContent = name;
 
     btn.addEventListener('click', () => {
       currentScenario = name;

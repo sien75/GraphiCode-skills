@@ -111,7 +111,7 @@ Then configure the page registry and route change listeners accordingly (see the
 
 ### Scenario switcher UI
 
-The playground creates a floating button panel at the bottom-right corner. Each button is a numbered circle representing a mock scenario. Hovering shows the scenario name, clicking injects that scenario's mock data via `_publish`. The first scenario is selected by default.
+The playground creates a floating button panel at the bottom-right corner. Each button displays the scenario name directly (written in the `writingLanguage` from `graphig.md`). Clicking injects that scenario's mock data via `_publish`. The first scenario is selected by default.
 
 On route change, the switcher automatically updates to show the current page's scenarios and injects the first one.
 
