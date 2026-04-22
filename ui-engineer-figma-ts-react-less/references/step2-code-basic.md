@@ -81,7 +81,7 @@ All output files go to `<stateDirs.pages>/<stateId>/`:
 Generate the `index.tsx` at `<stateDirs.pages>/<stateId>/index.tsx`. It contains:
 - Imports for State utilities, scene components, and types
 - State class definition with private state fields, public methods with `@guardEnabled` + `@curried` decorators, and getState()
-- State instantiation and enable
+- State instantiation and named exports (`stateInstance`, `stateChangeEventName`)
 - Page component receiving `{ data, stateInstance }` and assembling scene components
 - `connect()` wrapper and default export
 
@@ -143,9 +143,8 @@ export class LoginPageState extends State {
   }
 }
 
-const loginPageState = new LoginPageState();
-
-loginPageState.enable();
+export const stateInstance = new LoginPageState();
+export const stateChangeEventName = 'LoginPageState.__stateChange';
 
 const LoginPage: React.FC<{
   data: any;
@@ -164,7 +163,7 @@ const LoginPage: React.FC<{
 };
 
 const LoginPageWithState = connect(
-  loginPageState,
+  stateInstance,
   'LoginPageState',
   LoginPage,
 );

@@ -27,7 +27,10 @@ export function connect<S extends Subscription>(
         });
 
       // Then fetch initial state
-      stateInstance.getState();
+      const initialState = stateInstance.getState();
+      if (initialState) {
+        setData(initialState);
+      }
 
       return () => {
         subscription.unsubscribe();
