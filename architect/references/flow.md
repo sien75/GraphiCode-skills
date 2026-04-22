@@ -11,8 +11,6 @@ Flow is described in YAML format, stored in `README.yaml` files.
 ```yaml
 type: sequence_diagram
 
-description: <one-line scenario summary, written in the writingLanguage specified in graphig.md>
-
 participants:
   - name: UserPage
     path: pages/UserPage
@@ -21,6 +19,7 @@ participants:
 
 connections:
   - id: 0
+    description: <short description of what this connection does, written in writingLanguage>
     on:
       state: UserPage
       event: submit
@@ -31,10 +30,6 @@ connections:
       method: login
       param: username
 ```
-
-## description
-
-Each `README.yaml` must have a `description` field — a one-line summary of the flow's scenario, written in the `writingLanguage` specified in the project's `graphig.md`. This description is displayed in the flow viewer UI to help readers quickly identify each flow.
 
 ## participants
 
@@ -50,6 +45,7 @@ Each connection reads as a sentence: **on** event, **pipe** transforms, **call**
 Fields:
 
 - `id`: Unique sequence number, starting from 0, must be consecutive.
+- `description`: A short description of what this connection does, written in the `writingLanguage` specified in `graphig.md`. Displayed in the flow viewer UI.
 - `on.state`: Optional. The state that emits the event. If present, listens to a state self-originated event. If absent, listens to a flow broadcast event on the global EventBus.
 - `on.event`: The event name that triggers this connection (broadcast — receives all occurrences).
 - `pipe`: Optional list of algorithm functions. Each receives `{ logs, payload }` and returns a transformed value. Executes top-to-bottom. The final output becomes the value for `call.param`.
@@ -166,8 +162,6 @@ State methods only return values or throw errors. They do **not** call `_publish
 ```yaml
 type: sequence_diagram
 
-description: Login flow — submit credentials, store token, render dashboard
-
 participants:
   - name: UserPage
     path: pages/UserPage
@@ -180,6 +174,7 @@ participants:
 
 connections:
   - id: 0
+    description: Submit username to login
     on:
       state: UserPage
       event: UserPage.submit
@@ -206,6 +201,7 @@ connections:
       param: error
 
   - id: 1
+    description: Submit password to login
     on:
       state: UserPage
       event: UserPage.submit
@@ -227,8 +223,6 @@ connections:
 ```yaml
 type: sequence_diagram
 
-description: Config read — load configuration on page init
-
 participants:
   - name: UserPage
     path: pages/UserPage
@@ -237,6 +231,7 @@ participants:
 
 connections:
   - id: 0
+    description: Read config on page init
     on:
       state: UserPage
       event: UserPage.init
@@ -296,14 +291,13 @@ Example 3 broadcasts `loginSuccess`. A separate flow listens to this event. Note
 # flow file: save-token-on-login.yaml
 type: sequence_diagram
 
-description: Save token on login — store token when login succeeds
-
 participants:
   - name: Store
     path: stores/TokenStore
 
 connections:
   - id: 0
+    description: Save token on login success
     on:
       event: loginSuccess
     pipe:
