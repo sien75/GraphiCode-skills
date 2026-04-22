@@ -11,6 +11,8 @@ Flow is described in YAML format, stored in `README.yaml` files.
 ```yaml
 type: sequence_diagram
 
+description: <one-line scenario summary, written in the writingLanguage specified in graphig.md>
+
 participants:
   - name: UserPage
     path: pages/UserPage
@@ -30,6 +32,10 @@ connections:
       param: username
 ```
 
+## description
+
+Each `README.yaml` must have a `description` field — a one-line summary of the flow's scenario, written in the `writingLanguage` specified in the project's `graphig.md`. This description is displayed in the flow viewer UI to help readers quickly identify each flow.
+
 ## participants
 
 Declare all participating states under `participants`. Each participant has:
@@ -47,7 +53,7 @@ Fields:
 - `on.state`: Optional. The state that emits the event. If present, listens to a state self-originated event. If absent, listens to a flow broadcast event on the global EventBus.
 - `on.event`: The event name that triggers this connection (broadcast — receives all occurrences).
 - `pipe`: Optional list of algorithm functions. Each receives `{ logs, payload }` and returns a transformed value. Executes top-to-bottom. The final output becomes the value for `call.param`.
-- `call.state`: The target state that owns the method.
+- `call.state`: The target state that owns the method. **`call` is required** — every connection must have a `call` block. `then` and `catch` are optional.
 - `call.method`: The method to call.
 - `call.param`: Optional. Which parameter of the method this connection fills. If the method takes zero parameters, omit `call.param` — the method executes immediately when the event fires.
 - `then`: Optional. Routes the method's return value. See "then and catch" below.
@@ -160,6 +166,8 @@ State methods only return values or throw errors. They do **not** call `_publish
 ```yaml
 type: sequence_diagram
 
+description: Login flow — submit credentials, store token, render dashboard
+
 participants:
   - name: UserPage
     path: pages/UserPage
@@ -218,6 +226,8 @@ connections:
 
 ```yaml
 type: sequence_diagram
+
+description: Config read — load configuration on page init
 
 participants:
   - name: UserPage
@@ -285,6 +295,8 @@ Example 3 broadcasts `loginSuccess`. A separate flow listens to this event. Note
 ```yaml
 # flow file: save-token-on-login.yaml
 type: sequence_diagram
+
+description: Save token on login — store token when login succeeds
 
 participants:
   - name: Store
