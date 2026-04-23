@@ -40,7 +40,7 @@ memory
 This state is a memory state, which means...
 ```
 
-Types are defined in the `types.ts` file inside each state's directory, not in the README. Each state owns its types — no external type directories. If multiple states need similar types, define them independently in each state but keep them consistent by referencing other states' definitions when writing.
+Types are defined in the `<typeFileName>` file (specified in `graphig.md`) inside each state's directory, not in the README. Each state owns its types — no external type directories. If multiple states need similar types, define them independently in each state but keep them consistent by referencing other states' definitions when writing.
 
 Methods only return values or throw errors. They do **not** publish events. All result distribution is handled by the flow layer.
 
@@ -86,7 +86,7 @@ Every state automatically has the following built-in members. They do not need t
 
 Mapping thinking means that no matter what the state is, it must correspond to a concrete entity. In other words, you must clearly specify where this state resides, for example: ordinary in-memory state, persistent state on disk, or state in a database, etc.
 
-When writing states, **do not mention algorithms or flows**. States define their own types in `types.ts`.
+When writing states, **do not mention algorithms or flows**. States define their own types in `<typeFileName>` (from `graphig.md`).
 
 **Check `rumtimeEnv` to determine which resides-in options apply.**
 

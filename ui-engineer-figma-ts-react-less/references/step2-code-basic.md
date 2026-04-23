@@ -66,7 +66,7 @@ All output files go to `<stateDirs.pages>/<stateId>/`:
 ```
 <stateDirs.pages>/<stateId>/
 ├── index.tsx           # Entry file: State class + page component + connect wrapper
-├── types.ts            # Type definitions (LoginPageStatus, etc.)
+├── <typeFileName>      # Type definitions (LoginPageStatus, etc.) — filename from graphig.md
 ├── LoginForm.tsx       # Scene component (export default)
 ├── LoginForm.less      # Scene styles (Less Modules)
 ├── Terms.tsx

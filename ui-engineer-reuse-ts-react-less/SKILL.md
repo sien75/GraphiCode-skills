@@ -29,7 +29,7 @@ The following configurations need to be read from `graphig.md`:
 
 ## Step 1: Scan and Analyze Pages
 
-Read the scene tsx and less files across the specified pages (under `<stateDirs.pages>/<stateId>/`, excluding `index.tsx` and `types.ts`).
+Read the scene tsx and less files across the specified pages (under `<stateDirs.pages>/<stateId>/`, excluding `index.tsx` and the `<typeFileName>` specified in `graphig.md`).
 
 **IMPORTANT: Use subagents to read scene files. Do NOT read all scene file contents in the main context.** Each subagent reads one page's scenes and returns a structured summary of:
 

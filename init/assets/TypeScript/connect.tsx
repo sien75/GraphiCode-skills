@@ -12,9 +12,9 @@ import Subscription from './Subscription';
 export function connect<S extends Subscription>(
   stateInstance: S,
   className: string,
-  WrappedComponent: React.FC<{ data: any; stateInstance: S }>
-): React.FC {
-  const ConnectedComponent: React.FC = () => {
+  WrappedComponent: React.FC<{ data: any; stateInstance: S; children?: React.ReactNode }>,
+): React.FC<{ children?: React.ReactNode }> {
+  const ConnectedComponent: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
     const [data, setData] = useState<any>({});
 
     useEffect(() => {
@@ -23,7 +23,7 @@ export function connect<S extends Subscription>(
         .on(className + '.__stateChange')
         .subscribe((newState: any) => {
           setData((prevState: any) => ({ ...prevState, ...newState }));
-          stateInstance._publish(className + '.__pageInit')
+          stateInstance._publish(className + '.__pageInit');
         });
 
       // Then fetch initial state
@@ -37,7 +37,7 @@ export function connect<S extends Subscription>(
       };
     }, [stateInstance]);
 
-    return <WrappedComponent data={data} stateInstance={stateInstance} />;
+    return <WrappedComponent data={data} stateInstance={stateInstance}>{children}</WrappedComponent>;
   };
 
   return ConnectedComponent;

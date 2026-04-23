@@ -8,23 +8,23 @@ Algorithm nodes receive input, process it through their own logic, and produce o
 
 This is an example of an algorithm node file, meaning:
 
-1. this algorithm receives a payload containing fields a (dir1/TypeA), b (dir1/TypeB), c (dir2/TypeC), and d (dir2/TypeD)
+1. this algorithm receives a payload containing fields a (`stateDir/Auth.TypeA`), b (`stateDir/Auth.TypeB`), c (`stateDir/Store.TypeC`), and d (`stateDir/Store.TypeD`)
 2. executes the description under the description heading
-3. produces an output with fields e (dir2/TypeE), f (dir2/TypeF), and g (dir2/TypeG)
+3. produces an output with fields e (`stateDir/Store.TypeE`), f (`stateDir/Store.TypeF`), and g (`stateDir/Store.TypeG`)
 
 ```md
 # io
-(a: dir1/TypeA, b: dir1/TypeB, c: dir2/TypeC, d: dir2/TypeD) -> {e: dir2/TypeE, f: dir2/TypeF, g: dir2/TypeG}
+(a: stateDir/Auth.TypeA, b: stateDir/Auth.TypeB, c: stateDir/Store.TypeC, d: stateDir/Store.TypeD) -> {e: stateDir/Store.TypeE, f: stateDir/Store.TypeF, g: stateDir/Store.TypeG}
 
 # description
 Transform a and b to e and f.
 ```
 
-The first line is the **signature**: `(inputs...) -> output`. Each parameter follows the format `paramName: dir/TypeID`, where `dir/TypeID` is a type ID with its directory prefix. The directory corresponds to one of the `typeDirs` in `graphig.md`, and the type details are defined there, which you need to look up accordingly.
+The first line is the **signature**: `(inputs...) -> output`. Each parameter follows the format `paramName: stateDir/StateName.TypeName`, where `stateDir` corresponds to one of the `stateDirs` in `graphig.md`, `StateName` is the state ID, and `TypeName` is a type defined in that state's `# type` section.
 
 ## important notes
 
-When writing algorithms, **do not mention states or flows**. Algorithms should only depend on types.
+When writing algorithms, **do not mention states or flows**. Algorithms reference types defined in states but do not depend on state logic.
 
 When writing an algorithm's description, **do not describe the source or destination of data**. Focus only on how data is transformed from input to output.
 
