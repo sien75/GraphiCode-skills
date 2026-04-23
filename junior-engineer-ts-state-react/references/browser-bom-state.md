@@ -4,16 +4,18 @@ Native browser BOM interfaces include window / screen / navigator, etc., which a
 
 ```md
 # method
-queryWindowSize: () -> void
-queryOnlineStatus: () -> void
+queryWindowSize: () -> WindowSize
+queryOnlineStatus: () -> boolean
 scrollTo: (options: ScrollOptions) -> void
 alert: (msg: string) -> void
 
 # event
-size: (cb: (size: WindowSize) -> void) -> void
-isOnline: (cb: (status: boolean) -> void) -> void
-queryWindowSizeSuccess: (cb: (size: WindowSize) -> void) -> void
-queryOnlineStatusSuccess: (cb: (status: boolean) -> void) -> void
+BOMState.size: WindowSize
+BOMState.isOnline: boolean
+
+# state
+size: WindowSize
+online: boolean
 
 # resides-in
 browser-BOM
@@ -22,19 +24,20 @@ browser-BOM
 This state encapsulates common browser BOM operations and events:
 1. **State Maintenance**: Real-time monitoring of window size changes and network connection status.
 2. **Methods**:
-    - `queryWindowSize`: Publish the current window dimensions via `queryWindowSizeSuccess` event.
-    - `queryOnlineStatus`: Publish whether the browser is online via `queryOnlineStatusSuccess` event.
+    - `queryWindowSize`: Return the current window dimensions.
+    - `queryOnlineStatus`: Return whether the browser is online.
     - `scrollTo`: Control page scrolling.
     - `alert`: Trigger a native alert.
 3. **Events**:
-    - `size`: Notify Flow when the window size changes.
-    - `isOnline`: Notify Flow when the network status changes.
+    - `BOMState.size`: Notify Flow when the window size changes.
+    - `BOMState.isOnline`: Notify Flow when the network status changes.
 ```
 
 ```ts
-import { Subscription, Status } from 'graphicode-utils';
+import State from '@/graphicode-utils/State';
+import { guardEnabled, curried } from '@/graphicode-utils/state-decorators';
 
-class BOMState extends Subscription implements Status {
+class BOMState extends State {
   private size: { width: number; height: number } = { width: 0, height: 0 };
   private online: boolean = true;
 
@@ -48,18 +51,16 @@ class BOMState extends Subscription implements Status {
 
     this.resizeHandler = () => {
       this.size = { width: window.innerWidth, height: window.innerHeight };
-      // global state-change event, not triggered by a method call — no tag
-      this._publish('size', this.size);
+      // self-originated event — state change not triggered by a method call
+      this._publish('BOMState.size', this.size);
     };
     this.onlineHandler = () => {
       this.online = true;
-      // global state-change event, not triggered by a method call — no tag
-      this._publish('isOnline', true);
+      this._publish('BOMState.isOnline', true);
     };
     this.offlineHandler = () => {
       this.online = false;
-      // global state-change event, not triggered by a method call — no tag
-      this._publish('isOnline', false);
+      this._publish('BOMState.isOnline', false);
     };
 
     window.addEventListener('resize', this.resizeHandler);
@@ -78,34 +79,35 @@ class BOMState extends Subscription implements Status {
     super.disable();
   }
 
-  public queryWindowSize(
-    tag: { key: string; value: string }
-  ) {
-    this._publish('queryWindowSizeSuccess', this.size, tag.value);
+  @guardEnabled
+  @curried
+  public queryWindowSize() {
+    return this.size;
   }
 
-  public queryOnlineStatus(
-    tag: { key: string; value: string }
-  ) {
-    this._publish('queryOnlineStatusSuccess', this.online, tag.value);
+  @guardEnabled
+  @curried
+  public queryOnlineStatus() {
+    return this.online;
   }
 
-  public scrollTo(
-    tag: { key: string; value: string },
-    options: { key: string; value: any }
-  ) {
-    window.scrollTo(options.value);
+  @guardEnabled
+  @curried
+  public scrollTo(options: ScrollToOptions) {
+    window.scrollTo(options);
   }
 
-  public alert(
-    tag: { key: string; value: string },
-    msg: { key: string; value: string }
-  ) {
-    window.alert(msg.value);
+  @guardEnabled
+  @curried
+  public alert(msg: string) {
+    window.alert(msg);
   }
 
-  public on(eventName: string) {
-    return this._subscribe(eventName);
+  public getState() {
+    return {
+      size: this.size,
+      online: this.online,
+    };
   }
 }
 
@@ -119,8 +121,12 @@ Use `enable()` to initialize state and set up event listeners, `disable()` to te
 
 Note 2:
 
-To import assets such as images, import them from `src/assets`. The imported value is a string representing the asset's URL.
+Every method is decorated with `@guardEnabled` (skips execution when state is disabled) and `@curried` (enables parameter collection from the Flow layer). Methods use normal parameter signatures — the `@curried` decorator handles the `{key, value}` conversion internally.
 
 Note 3:
 
-After adding a page, you must update the routing information in .umirc.ts.
+Events use `StateClassName.eventName` format (e.g., `BOMState.size`). These are self-originated events that the state publishes on its own — they are NOT triggered by method calls.
+
+Note 4:
+
+Methods return values (or throw errors) directly. They do **not** publish events. All result distribution (unicast, multicast, broadcast) is handled by the flow layer via `then`/`catch`.
