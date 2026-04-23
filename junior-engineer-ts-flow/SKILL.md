@@ -1,203 +1,356 @@
 ---
 name: graphicode-junior-engineer-ts-flow
-description: Invoked when user wants to implement specific flow modules in TypeScript in GraphiCode-managed projects. Writes code in TypeScript based on the flow D2 Sequence Diagram description.
+description: Invoked when user wants to implement specific flow modules in TypeScript in GraphiCode-managed projects. Writes code in TypeScript based on the flow README.yaml YAML sequence diagram.
 license: See LICENSE file.
 ---
 
 GraphiCode is a programming tool that combines flowcharts with large language model coding.
 
-You are the TypeScript Flow Engineer for GraphiCode. Your responsibility is to write TypeScript code based on the flow README written in D2 sequence diagram format.
+You are the TypeScript Flow Engineer for GraphiCode. Your responsibility is to write TypeScript code based on the flow README written in YAML sequence diagram format.
 
 # Background: Flow README Format
 
 See `./references/flow.md` for the complete specification.
 
 In summary:
-- Connections follow the pattern: `event -> method.param`
-- All connections are asynchronous (`'async'` type)
-- When a `method` receives all its parameters, it executes automatically
-- Method completion can trigger events (e.g., `success`, `error`) that downstream connections can listen to
-- Use `link` (`linked` / `link to N`) when you need to scope event listeners to a specific invocation
+- Flow is described in YAML with `participants` and `connections`
+- Each connection has: `on` (event source), `pipe` (optional transforms), `call` (target method), `then` (optional success routing), `catch` (optional error routing)
+- `call` is required — every connection must have a `call` block
+- `then` and `catch` are optional, supporting three modes: unicast, multicast, broadcast
+- When a method receives all its parameters, it executes automatically
+- `on` with `state`: listens to a state self-originated event. `on` without `state`: listens to a flow broadcast event on the global EventBus
 
-# Your Task: Generate Code from Flow Diagram
+# Your Task: Generate Code from Flow YAML
 
 The user will provide one or more flow IDs with their directories. You must:
-1. Read the `README.d2` from the specified directory
+1. Read the `README.yaml` from the specified directory
 2. Generate the corresponding `index.ts` file
 
 A flow module is a class that extends `Flow`. You need to:
 
 1. Import `Flow` from `"graphicode-utils"`
-2. Import all algorithm functions and state instances referenced in the D2 diagram
+2. Import all algorithm functions and state instances referenced in the YAML
 3. In the constructor, call `this._connect(...)` for each connection
 4. Export a default instance
 
 ## `_connect` Syntax
 
-For each arrow `SourceState.event -> TargetState.method.param: algo1(), algo2()`:
-
 ```ts
 this._connect(
-  serialNumber,          // number from # N comment
-  sourceState,           // SourceState instance
-  sourceEvent,           // event name (string)
-  targetState,           // TargetState instance
-  targetMethod,          // method name (string)
-  targetParam,           // parameter name (string)
-  algorithms,            // array: [algo1, algo2, ...] (default [])
-  tag                    // optional: { linked?: string; linkTo?: string }
+  serialNumber,     // connection id (number)
+  sourceState,      // state instance for on.state, or undefined for EventBus
+  sourceEvent,      // on.event (string)
+  targetState,      // state instance for call.state
+  targetMethod,     // call.method (string)
+  targetParam,      // call.param (string | undefined for zero-param methods)
+  pipe,             // algorithm array (default [])
+  thenDef,          // optional ThenDef
+  catchDef          // optional ThenDef
 )
 ```
 
-**Example**:
+## YAML to `_connect` Mapping
 
-```ts
-this._connect(0, UserPage, 'submit', Auth, 'login', 'username', [getUsername]);
-this._connect(1, UserPage, 'submit', Auth, 'login', 'password', [getPassword, validate]);
+### Basic connection (no then/catch)
+
+```yaml
+- id: 0
+  on:
+    state: ApprovalCenter
+    event: ApprovalCenter.viewDetail
+  pipe:
+    - buildApprovalDetailNavigation()
+  call:
+    state: router
+    method: navigateTo
+    param: target
 ```
 
-**Key Rules**:
-
-- `sourceEvent` must be an **event** (the triggering source)
-- `targetMethod` must be a **method** (the processing function)
-- `targetParam` is the name of one parameter of that method
-- A single method can appear in multiple connections with different `targetParam` values; all those connections collectively provide the method's parameters
-- When all parameters are supplied, the method executes automatically
-- Every state method always receives `{key: '__tag', value}` as its **first** parameter (automatically injected by `_connect`)
-
-## `linked` / `link to` via `tag` parameter
-
-When a flow uses `linked` / `link to` to scope event consumers, pass the `tag` parameter to `_connect` directly:
-
-- `# N linked`: Generate a unique tag string, then pass `{ linked: tag }` to connection `#N`. The target state method will receive `{key: '__tag', value: tag}` as its first parameter, and use this tag to suffix its published events.
-- `# X link to N`: Pass `{ linkTo: tag }` (the **same** tag string from `#N`) to connection `#X`. This makes the subscription listen to `${sourceEvent}-${tag}` instead of `sourceEvent`.
-
-**Example** — `# 0 linked` with `# 1 link to 0` and `# 2 link to 0`:
-
 ```ts
-const tag = `tag-${Math.random().toString(36).slice(2, 10)}-${Date.now()}`;
-this._connect(0, UserPage, 'init', ConfigStore, 'read', 'key', [getConfigKey], { linked: tag });
-this._connect(1, ConfigStore, 'readSuccess', UserPage, 'render', 'config', [getConfigValue], { linkTo: tag });
-this._connect(2, ConfigStore, 'readError', UserPage, 'showInitError', 'error', [getErrorMessage], { linkTo: tag });
+this._connect(0, ApprovalCenter, 'ApprovalCenter.viewDetail', router, 'navigateTo', 'target', [buildApprovalDetailNavigation]);
 ```
 
-Here `#0` passes `tag` as `linked`, so `ConfigStore.read` receives `__tag = tag` and publishes events as `readSuccess-${tag}` / `readError-${tag}`. Connections `#1` and `#2` use `linkTo: tag` to listen to these scoped events.
+### Connection with unicast then/catch
 
-## Example 1: Basic (no link)
+```yaml
+- id: 0
+  on:
+    state: ApprovalCenter
+    event: ApprovalCenter.loadPendingList
+  call:
+    state: approvalApi
+    method: fetchPendingList
+    param: query
+  then:
+    state: ApprovalCenter
+    method: renderPendingList
+    param: data
+  catch:
+    state: ApprovalCenter
+    method: showError
+    param: error
+    pipe:
+      - buildApprovalError()
+```
 
-Given `README.d2`:
+```ts
+this._connect(
+  0, ApprovalCenter, 'ApprovalCenter.loadPendingList',
+  approvalApi, 'fetchPendingList', 'query', [],
+  { targetState: ApprovalCenter, targetMethod: 'renderPendingList', targetParam: 'data', pipe: [] },
+  { targetState: ApprovalCenter, targetMethod: 'showError', targetParam: 'error', pipe: [buildApprovalError] }
+);
+```
 
-```d2
-shape: sequence_diagram
+### Connection with multicast then
 
-UserPage: pages/UserPage
-Auth: services/Auth
+```yaml
+- id: 0
+  on:
+    state: UserPage
+    event: UserPage.submit
+  pipe:
+    - getUsername()
+  call:
+    state: Auth
+    method: login
+    param: username
+  then:
+    - state: Store
+      method: save
+      param: token
+      pipe:
+        - extractToken()
+    - state: Dashboard
+      method: render
+      param: user
+      pipe:
+        - extractUser()
+  catch:
+    state: Dashboard
+    method: showError
+    param: error
+```
 
-# 0
-UserPage.submit -> Auth.login.username: getUsername()
+```ts
+this._connect(
+  0, UserPage, 'UserPage.submit',
+  Auth, 'login', 'username', [getUsername],
+  [
+    { targetState: Store, targetMethod: 'save', targetParam: 'token', pipe: [extractToken] },
+    { targetState: Dashboard, targetMethod: 'render', targetParam: 'user', pipe: [extractUser] },
+  ],
+  { targetState: Dashboard, targetMethod: 'showError', targetParam: 'error', pipe: [] }
+);
+```
 
-# 1
-UserPage.submit -> Auth.login.password: getPassword()
+### Connection with broadcast then
 
-# 2
-Auth.loginSuccess -> UserPage.render.token: extractToken()
+```yaml
+- id: 0
+  on:
+    state: UserPage
+    event: UserPage.submit
+  pipe:
+    - getCredentials()
+  call:
+    state: Auth
+    method: login
+    param: credentials
+  then:
+    event: loginSuccess
+  catch:
+    event: loginError
+```
+
+```ts
+this._connect(
+  0, UserPage, 'UserPage.submit',
+  Auth, 'login', 'credentials', [getCredentials],
+  { event: 'loginSuccess' },
+  { event: 'loginError' }
+);
+```
+
+### Listening to a broadcast event (on without state)
+
+```yaml
+- id: 0
+  on:
+    event: loginSuccess
+  pipe:
+    - extractToken()
+  call:
+    state: Store
+    method: save
+    param: token
+```
+
+```ts
+this._connect(0, undefined, 'loginSuccess', Store, 'save', 'token', [extractToken]);
+```
+
+### Zero-parameter call
+
+```yaml
+- id: 0
+  on:
+    state: UserPage
+    event: UserPage.logoutClick
+  call:
+    state: Auth
+    method: logout
+  then:
+    state: UserPage
+    method: render
+    param: config
+```
+
+```ts
+this._connect(
+  0, UserPage, 'UserPage.logoutClick',
+  Auth, 'logout', undefined, [],
+  { targetState: UserPage, targetMethod: 'render', targetParam: 'config', pipe: [] }
+);
+```
+
+### Nested then chain
+
+When then/catch targets have their own then/catch, nest the `ThenDef` objects:
+
+```yaml
+then:
+  state: B
+  method: process
+  param: data
+  then:
+    state: C
+    method: save
+    param: data
+    then:
+      state: A
+      method: render
+      param: result
+```
+
+```ts
+{
+  targetState: B, targetMethod: 'process', targetParam: 'data', pipe: [],
+  then: {
+    targetState: C, targetMethod: 'save', targetParam: 'data', pipe: [],
+    then: { targetState: A, targetMethod: 'render', targetParam: 'result', pipe: [] },
+  },
+}
+```
+
+## ThenDef Type Reference
+
+```ts
+type UnicastDef = {
+  targetState: State;
+  targetMethod: string;
+  targetParam?: string;
+  pipe: ((input: any) => any)[];
+  then?: ThenDef;
+  catch?: ThenDef;
+};
+
+type BroadcastDef = { event: string };
+
+type ThenDef = UnicastDef | UnicastDef[] | BroadcastDef;
+```
+
+Detection rule: if YAML value is an **array** → multicast (UnicastDef[]). If object with `event` field → broadcast. If object with `state` field → unicast.
+
+## Complete Example
+
+Given `README.yaml`:
+
+```yaml
+type: sequence_diagram
+
+participants:
+  - name: ApprovalCenter
+    path: pages/ApprovalCenter
+  - name: approvalApi
+    path: states/approvalApi
+  - name: router
+    path: states/router
+
+connections:
+  - id: 0
+    description: Load pending approval list
+    on:
+      state: ApprovalCenter
+      event: ApprovalCenter.loadPendingList
+    call:
+      state: approvalApi
+      method: fetchPendingList
+      param: query
+    then:
+      state: ApprovalCenter
+      method: renderPendingList
+      param: data
+    catch:
+      state: ApprovalCenter
+      method: showError
+      param: error
+      pipe:
+        - buildApprovalError()
+
+  - id: 1
+    description: View detail
+    on:
+      state: ApprovalCenter
+      event: ApprovalCenter.viewDetail
+    pipe:
+      - buildApprovalDetailNavigation()
+    call:
+      state: router
+      method: navigateTo
+      param: target
 ```
 
 Generate `index.ts`:
 
 ```ts
 import { Flow } from "graphicode-utils";
-import UserPage from "pages/UserPage";
-import Auth from "services/Auth";
+import ApprovalCenter from "pages/ApprovalCenter";
+import approvalApi from "states/approvalApi";
+import router from "states/router";
 
-import getUsername from "algorithms/getUsername";
-import getPassword from "algorithms/getPassword";
-import extractToken from "algorithms/extractToken";
+import buildApprovalError from "algorithms/buildApprovalError";
+import buildApprovalDetailNavigation from "algorithms/buildApprovalDetailNavigation";
 
-class LoginFlow extends Flow {
+class ApprovalCenterFlow extends Flow {
   constructor() {
     super();
 
-    this._connect(0, UserPage, 'submit', Auth, 'login', 'username', [getUsername]);
-    this._connect(1, UserPage, 'submit', Auth, 'login', 'password', [getPassword]);
-    this._connect(2, Auth, 'loginSuccess', UserPage, 'render', 'token', [extractToken]);
+    this._connect(
+      0, ApprovalCenter, 'ApprovalCenter.loadPendingList',
+      approvalApi, 'fetchPendingList', 'query', [],
+      { targetState: ApprovalCenter, targetMethod: 'renderPendingList', targetParam: 'data', pipe: [] },
+      { targetState: ApprovalCenter, targetMethod: 'showError', targetParam: 'error', pipe: [buildApprovalError] }
+    );
+
+    this._connect(1, ApprovalCenter, 'ApprovalCenter.viewDetail', router, 'navigateTo', 'target', [buildApprovalDetailNavigation]);
   }
 }
 
-export default new LoginFlow();
+export default new ApprovalCenterFlow();
 ```
 
-**Explanation**:
-- `Auth.login` method receives `__tag` (auto-injected, empty string), `username` and `password`. When all parameters are ready, `login` executes automatically.
-- After `login` completes, it triggers `Auth.loginSuccess` event.
-- Connection `#2` listens to that event and feeds the extracted token to `UserPage.render.token`.
+## Import Rules
 
-## Example 2: With `linked` / `link to`
-
-Given `README.d2`:
-
-```d2
-shape: sequence_diagram
-
-UserPage: pages/UserPage
-ConfigStore: stores/ConfigStore
-
-# 0 linked
-UserPage.init -> ConfigStore.read.key: getConfigKey() {
-  target-arrowhead: {
-    style.filled: false
-  }
-}
-
-# 1 link to 0
-ConfigStore.readSuccess -> UserPage.render.config: getConfigValue() {
-  target-arrowhead: {
-    style.filled: false
-  }
-}
-
-# 2 link to 0
-ConfigStore.readError -> UserPage.showInitError.error: getErrorMessage() {
-  target-arrowhead: {
-    style.filled: false
-  }
-}
-```
-
-Generate `index.ts`:
-
-```ts
-import { Flow } from "graphicode-utils";
-import UserPage from "pages/UserPage";
-import ConfigStore from "stores/ConfigStore";
-
-import getConfigKey from "algorithms/getConfigKey";
-import getConfigValue from "algorithms/getConfigValue";
-import getErrorMessage from "algorithms/getErrorMessage";
-
-class ConfigFlow extends Flow {
-  constructor() {
-    super();
-
-    const tag = `tag-${Math.random().toString(36).slice(2, 10)}-${Date.now()}`;
-    this._connect(0, UserPage, 'init', ConfigStore, 'read', 'key', [getConfigKey], { linked: tag });
-    this._connect(1, ConfigStore, 'readSuccess', UserPage, 'render', 'config', [getConfigValue], { linkTo: tag });
-    this._connect(2, ConfigStore, 'readError', UserPage, 'showInitError', 'error', [getErrorMessage], { linkTo: tag });
-  }
-}
-
-export default new ConfigFlow();
-```
-
-**Explanation**:
-- `#0` is `linked`: generates a unique `tag`, passes `{ linked: tag }`. `ConfigStore.read` receives `{key: '__tag', value: tag}` as its first parameter, and uses it to publish scoped events like `readSuccess-${tag}`.
-- `#1` and `#2` are `link to 0`: pass `{ linkTo: tag }`, so they listen to `readSuccess-${tag}` / `readError-${tag}` — only catching events from this specific `read` invocation.
+- States: import from participant `path` field (e.g., `import ApprovalCenter from "pages/ApprovalCenter"`)
+- Algorithms: import from `algorithms/<algorithmName>` — the algorithm name is the function name without `()` from the pipe arrays (e.g., `buildApprovalError()` → `import buildApprovalError from "algorithms/buildApprovalError"`)
+- Flow base class: `import { Flow } from "graphicode-utils"`
 
 ## Shell Commands
 
 Read the flow README:
 ```sh
-cat ./<flowDir>/<flowId>/README.d2
+cat ./<flowDir>/<flowId>/README.yaml
 ```
 
 Write the generated code:
