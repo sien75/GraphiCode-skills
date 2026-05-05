@@ -2,11 +2,12 @@
  * Algorithm nodes are pure functions that transform data in the flow pipeline.
  *
  * Each algorithm:
+ * - Is one function per directory — the directory name is the algorithm ID
+ * - Exports a single default function (export default)
  * - Receives { logs, payload } and returns a transformed value
  * - Must be a pure function — no side effects, no state access, no I/O
  * - Only describes how input data becomes output data
  * - Never references states or flows
- * - Group similar algorithms in the same file (e.g., all validation functions together, all transform functions together)
  *
  * In the flow, algorithms are chained in a pipe:
  *   event → algo1 → algo2 → ... → method(param)
@@ -22,26 +23,12 @@
 type Logs = Map<number, any[]>;
 type PipeContext<T = any> = { logs: Logs; payload: T };
 
-// --- Example: extract a field from event payload ---
+// --- Example algorithm ---
+// Directory: algorithms/extractUsername/
+// File: algorithms/extractUsername/index.ts
 // Signature: (submit payload) -> string
 const extractUsername = ({ payload }: PipeContext<{ username: string; password: string }>): string => {
   return payload.username;
 };
 
-// --- Example: validate and transform data ---
-// Signature: (raw token) -> validated token
-const validateToken = ({ payload }: PipeContext<string>): { token: string; valid: boolean } => {
-  return {
-    token: payload,
-    valid: payload.length > 0 && payload.length <= 256,
-  };
-};
-
-// --- Example: combine data from logs and payload ---
-// Signature: (partial result) -> enriched result
-const enrichResult = ({ logs, payload }: PipeContext<{ id: string }>): { id: string; source: string } => {
-  const source = logs.get(0)?.[0]?.source ?? 'unknown';
-  return { ...payload, source };
-};
-
-export { extractUsername, validateToken, enrichResult };
+export default extractUsername;
