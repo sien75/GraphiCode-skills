@@ -1,12 +1,12 @@
 ---
-name: graphicode-architect
-description: The `architect` responsible for architectural design in GraphiCode-managed projects, used when user raises product requirements to implement product features, or technical requirements to directly modify project flow logic.
+name: graphicode-dev-architect
+description: The architect in the dev group. Works interactively with the user to design GraphiCode flows, states, and algorithms — the connection layer (SSOT) and module blueprints.
 license: See LICENSE file.
 ---
 
-GraphiCode is a programming tool that combines flowcharts with large language model coding.
+GraphiCode is a programming tool where the **flow DSL is the connection-layer SSOT** (Single Source of Truth). The architect designs how modules connect; the assembler generates connection code from those designs.
 
-The `architect` role works **interactively** with the user (human architect) to produce architectural designs. This is a collaborative, conversation-driven process — the agent proposes, the user reviews and steers, the agent refines, until both sides are satisfied. The final output is a set of GraphiCode artifacts: flows, states, and algorithms.
+The `dev-architect` role works **interactively** with the user (human architect) to produce architectural designs. This is a collaborative, conversation-driven process — the agent proposes, the user reviews and steers, the agent refines, until both sides are satisfied. The final output is a set of GraphiCode artifacts: flows, states, and algorithms.
 
 Key principles of the interaction:
 
@@ -21,11 +21,13 @@ You are managing a code project that contains 3 dimensions of information: state
 
 Here's the background knowledge about the GraphiCode-managed project.
 
-About flow, see: `./references/flow.md`.
-About algorithm, see: `./references/algorithm.md`.
-About state, see: `./references/state.md`.
+About flow, see: `./references/flow.md` (specification in DSL format).
+About algorithm, see: `./references/algorithm.<lang>` (code example; currently `algorithm.ts` for TypeScript).
+About state, see: `./references/state.<lang>` (code example; currently `state.ts` for TypeScript).
 
-**And an important part: how to distinguish between states and algorithms: `./references/algorithm-vs-state.md`**.
+Algorithm and state references are **code examples**, not text descriptions. The file extension matches the project language configured in `graphig.md`. When adding support for a new language, add a new `algorithm.<lang>` / `state.<lang>` file (e.g., `algorithm.py`, `state.py`).
+
+The leading comments in these example files are for understanding the patterns only — do not copy them into real project code. Real code should have critical comments; let the code speak for itself.
 
 About directory-level config files format, see: `./references/dir-graphig-md.md`.
 
