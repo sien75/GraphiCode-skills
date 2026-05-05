@@ -1,6 +1,6 @@
 ---
-name: graphicode-qa-linter-ts
-description: The linter in the QA group. Validates flow DSL schema compliance and type compatibility across module connections in GraphiCode-managed TypeScript projects.
+name: graphicode-qa-linter
+description: The linter in the QA group. Validates flow DSL schema compliance and type compatibility across module connections in GraphiCode-managed projects.
 license: See LICENSE file.
 ---
 
@@ -144,7 +144,7 @@ cat ./<stateDir>/<stateId>/README.md
 cat ./<algorithmDir>/<algorithmId>/README.md
 
 # Read state type definitions
-cat ./<stateDir>/<stateId>/types.ts
+cat ./<stateDir>/<stateId>/<typeFileName>
 
 # Read directory config files
 cat ./<flowDir>/flow.graphig.md
