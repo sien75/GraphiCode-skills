@@ -1,0 +1,125 @@
+/* GraphiCode Flow Viewer Styles */
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: var(--vscode-descriptionForeground);
+}
+.loading .hint {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.tab-bar {
+  display: flex;
+  gap: 2px;
+  padding: 4px 8px;
+  background: var(--vscode-tab-inactiveBackground);
+  border-bottom: 1px solid var(--vscode-panel-border);
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+.tab {
+  padding: 6px 16px;
+  border: none;
+  background: transparent;
+  color: var(--vscode-tab-inactiveForeground);
+  font-size: 13px;
+  cursor: pointer;
+  border-radius: 4px 4px 0 0;
+}
+.tab:hover {
+  background: var(--vscode-tab-hoverBackground);
+}
+.tab.active {
+  background: var(--vscode-tab-activeBackground);
+  color: var(--vscode-tab-activeForeground);
+  border-bottom: 2px solid var(--vscode-focusBorder);
+}
+
+.single-title {
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  flex-shrink: 0;
+}
+
+.diagram-container {
+  flex: 1;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Participant node */
+.participant-node {
+  background: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  border: 2px solid var(--vscode-focusBorder);
+  border-radius: 6px;
+  padding: 8px 16px;
+  text-align: center;
+  min-width: 120px;
+}
+.participant-name {
+  font-weight: 700;
+  font-size: 13px;
+}
+.participant-path {
+  font-size: 11px;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+/* Anchor node (invisible connection point on lifeline) */
+.anchor-node {
+  width: 8px;
+  height: 8px;
+  background: var(--vscode-focusBorder);
+  border-radius: 50%;
+}
+.anchor-handle {
+  width: 1px !important;
+  height: 1px !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  opacity: 0;
+}
+
+/* Lifeline (vertical dashed line) */
+.lifeline-node {
+  width: 2px;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--vscode-editorLineNumber-foreground) 0px,
+    var(--vscode-editorLineNumber-foreground) 6px,
+    transparent 6px,
+    transparent 12px
+  );
+}
+
+/* ReactFlow overrides for VS Code theme */
+.react-flow__background {
+  background: var(--vscode-editor-background) !important;
+}
+.react-flow__controls button {
+  background: var(--vscode-button-background) !important;
+  color: var(--vscode-button-foreground) !important;
+  border: 1px solid var(--vscode-button-border, transparent) !important;
+}
+.react-flow__controls button:hover {
+  background: var(--vscode-button-hoverBackground) !important;
+}
+.react-flow__controls button svg {
+  fill: var(--vscode-button-foreground) !important;
+}
