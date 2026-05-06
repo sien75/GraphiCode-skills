@@ -1,4 +1,3 @@
 node_modules
 VALUE.md
-vscode-graphicode/node_modules
-vscode-graphicode/dist
+dist

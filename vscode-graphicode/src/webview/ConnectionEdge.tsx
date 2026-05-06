@@ -28,6 +28,10 @@ function openFile(filePath: string, pattern: string) {
   vscode.postMessage({ type: 'openFile', filePath, pattern });
 }
 
+function findReferences(pattern: string) {
+  vscode.postMessage({ type: 'findReferences', pattern });
+}
+
 export function ConnectionEdge({
   id,
   sourceX,
@@ -135,7 +139,7 @@ export function ConnectionEdge({
               display: 'inline-block', float: isLeftToRight ? 'right' : 'left',
               ...(srcPath ? clickable : {}),
             }}
-            onClick={srcPath ? () => openFile(`${srcPath}/${mainFileName}`, eventName || srcLabel) : undefined}
+            onClick={srcPath ? () => findReferences(eventName || srcLabel) : undefined}
           >
             {srcLabel}
           </div>

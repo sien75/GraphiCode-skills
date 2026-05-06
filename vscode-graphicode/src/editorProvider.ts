@@ -3,6 +3,12 @@ import { scanFlowYamlFiles, scanParticipantTypes } from "./parser/scanner";
 import { yamlToGraph } from "./parser/yamlToGraph";
 import * as yaml from "js-yaml";
 
+interface ReferenceLocation {
+  file: string;
+  line: number;
+  text: string;
+}
+
 export class FlowEditorProvider implements vscode.CustomReadonlyEditorProvider {
   public static readonly viewType = "graphicode.flowViewer";
 
@@ -64,6 +70,8 @@ export class FlowEditorProvider implements vscode.CustomReadonlyEditorProvider {
       webviewPanel.webview.onDidReceiveMessage(async (msg) => {
         if (msg.type === "openFile") {
           await this.handleOpenFile(workspaceRoot, msg.filePath, msg.pattern);
+        } else if (msg.type === "findReferences") {
+          await this.handleFindReferences(workspaceRoot, flowDirs, msg.pattern);
         }
       });
     } catch (err: unknown) {
@@ -106,6 +114,109 @@ export class FlowEditorProvider implements vscode.CustomReadonlyEditorProvider {
     } catch {
       vscode.window.showWarningMessage(`File not found: ${relativePath}`);
     }
+  }
+
+  private async handleFindReferences(
+    workspaceRoot: string,
+    flowDirs: string[],
+    pattern: string
+  ) {
+    const path = await import("path");
+    const fs = await import("fs");
+
+    const locations = this.searchFiles(workspaceRoot, workspaceRoot, pattern, flowDirs);
+
+    if (locations.length === 0) {
+      vscode.window.showInformationMessage(`No references found for "${pattern}"`);
+      return;
+    }
+
+    if (locations.length === 1) {
+      // Single result — navigate directly
+      await this.navigateToLocation(locations[0]);
+      return;
+    }
+
+    // Multiple results — show QuickPick
+    const items = locations.map((loc) => {
+      const relPath = path.relative(workspaceRoot, loc.file);
+      return {
+        label: `${path.basename(loc.file)}:${loc.line + 1}`,
+        description: relPath,
+        detail: loc.text.trim(),
+        location: loc,
+      };
+    });
+
+    const picked = await vscode.window.showQuickPick(items, {
+      placeHolder: `References to "${pattern}" (${locations.length} found)`,
+    });
+
+    if (picked) {
+      await this.navigateToLocation(picked.location);
+    }
+  }
+
+  private searchFiles(
+    workspaceRoot: string,
+    dir: string,
+    pattern: string,
+    excludeDirs: string[]
+  ): ReferenceLocation[] {
+    const pathMod = require("path");
+    const fsMod = require("fs");
+    const results: ReferenceLocation[] = [];
+
+    // Directories to always skip
+    const alwaysSkip = new Set(["node_modules", ".git", "dist", "build", "out"]);
+
+    // Normalize exclude dirs to absolute paths
+    const excludeAbs = new Set(excludeDirs.map((d: string) => pathMod.join(workspaceRoot, d)));
+
+    let entries: string[];
+    try {
+      entries = fsMod.readdirSync(dir);
+    } catch {
+      return results;
+    }
+
+    for (const entry of entries) {
+      const fullPath = pathMod.join(dir, entry);
+      let stat: { isDirectory(): boolean; isFile(): boolean };
+      try {
+        stat = fsMod.statSync(fullPath);
+      } catch {
+        continue;
+      }
+
+      if (stat.isDirectory()) {
+        if (alwaysSkip.has(entry) || excludeAbs.has(fullPath)) continue;
+        results.push(...this.searchFiles(workspaceRoot, fullPath, pattern, excludeDirs));
+      } else if (stat.isFile() && /\.(ts|tsx|js|jsx)$/.test(entry)) {
+        try {
+          const content = fsMod.readFileSync(fullPath, "utf-8");
+          const lines = content.split("\n");
+          for (let i = 0; i < lines.length; i++) {
+            if (lines[i].includes(pattern)) {
+              results.push({ file: fullPath, line: i, text: lines[i] });
+            }
+          }
+        } catch {
+          // Skip unreadable files
+        }
+      }
+    }
+
+    return results;
+  }
+
+  private async navigateToLocation(location: ReferenceLocation) {
+    const uri = vscode.Uri.file(location.file);
+    const doc = await vscode.workspace.openTextDocument(uri);
+    const editor = await vscode.window.showTextDocument(doc, { preview: false });
+    const pos = new vscode.Position(location.line, 0);
+    editor.selection = new vscode.Selection(pos, pos);
+    editor.revealRange(new vscode.Range(pos, pos), vscode.TextEditorRevealType.InCenter);
   }
 
   private parseConfigList(content: string, key: string): string[] {
