@@ -142,7 +142,7 @@ There are two sources of events:
 - **State self-originated events**: declared in the state README, named as `StateClassName.eventName` (e.g., `UserPage.click`, `Timer.tick`). These are inherently namespaced and won't conflict. Listened via `on: { state: ..., event: ... }`.
 - **Flow broadcast events**: defined in flow YAML via `then`/`catch` broadcast mode. Published to the global EventBus. When naming a broadcast event, search all existing flow YAML files for `event:` fields to avoid name conflicts. Listened via `on: { event: ... }` (no `state`).
 
-State methods only return values or throw errors. They do **not** call `_publish` to emit events. All result distribution (unicast, multicast, broadcast) is handled by the flow layer.
+State methods may call `_publish` to emit self-originated events (name format: `StateClassName.eventName`). The flow layer also publishes broadcast events (via `then`/`catch` broadcast mode) to the global EventBus. These are two separate event sources: state self-originated events are listened via `on: { state: ..., event: ... }`, flow broadcast events are listened via `on: { event: ... }` (no `state`).
 
 ## important rules
 
@@ -153,7 +153,7 @@ State methods only return values or throw errors. They do **not** call `_publish
 5. `on` with `state`: listens to a state self-originated event. `on` without `state`: listens to a flow broadcast event on the global EventBus.
 6. `then` routes the method's **return value**: unicast (object with `state`), multicast (array), or broadcast (object with `event`).
 7. `catch` routes a **thrown error or Promise rejection**: same three modes as `then`.
-8. State methods must not call `_publish`. Result distribution is flow's responsibility.
+8. State methods may call `_publish` to emit self-originated events, but the event name must follow `StateClassName.eventName` format. Flow broadcast events are published to the global EventBus via `then`/`catch` broadcast mode.
 
 # examples
 

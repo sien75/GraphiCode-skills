@@ -4,7 +4,7 @@
  *
  * Each state:
  * - Extends the State base class (provides enable/disable, event pub/sub via rxjs Subject)
- * - Defines methods: receive params, return value or throw error. Methods must NOT call _publish.
+ * - Defines methods: receive params, return value or throw error. Methods may call _publish to emit self-originated events, but the event name must follow StateClassName.eventName format.
  * - Defines self-originated events: published via _publish, name format: ClassName.eventName
  * - Defines its own types in <typeFileName> (configured in graphig.md)
  *
@@ -82,7 +82,8 @@ class Auth extends State {
     return this._token;
   }
 
-  // Event publishing — called from lifecycle or external triggers, NOT from methods
+  // Event publishing — can be called from methods or lifecycle/external triggers
+  // Event name must follow StateClassName.eventName format
   // Events are self-originated: user actions, timers, DOM events, etc.
   private _emitLoginSuccess(result: LoginResult): void {
     this._publish('Auth.loginSuccess', result);

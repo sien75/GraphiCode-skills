@@ -105,6 +105,27 @@ If multiple connections fill parameters of the same method:
 1. Verify all parameter names match the method's declared parameter names in the state README
 2. Verify no duplicate parameter filling (two connections filling the same param of the same method from the same flow)
 
+## Phase 3: Code Validation
+
+Validate that algorithm and state implementation code respects module boundaries. Read the actual source files (not READMEs) to check import/call constraints.
+
+About code validation rules, see: `./references/code-validation.md`.
+
+### 3.1 Algorithm boundary checks
+
+| Check | Rule |
+|-------|------|
+| A1: algo imports state | Algorithm files must not import from any directory listed in `stateDirs` |
+| A2: algo imports other algo | Algorithm files must not import from other algorithms in `algorithmDirs` (each algo is an isolated pure function) |
+
+### 3.2 State boundary checks
+
+| Check | Rule |
+|-------|------|
+| S1: `_publish` event name format | Every `_publish` call in a state file must use a string matching `StateClassName.eventName`, where `StateClassName` equals the current state's class name |
+| S2: state imports other state | State files must not import other state instances and call their methods (cross-state calls must go through the flow layer) |
+| S3: state imports algo | State files must not import from any directory listed in `algorithmDirs` (algorithms are invoked only through flow pipes) |
+
 ## Reporting
 
 Report results in this format:
@@ -120,9 +141,14 @@ Report results in this format:
 - [PASS/FAIL] <check description>
   - Details: <what was found, what was expected>
 
+### Code Validation
+- [PASS/FAIL] <check description>
+  - Details: <what was found, what was expected>
+
 ### Summary
 - Schema: X passed, Y failed
 - Types: X passed, Y failed
+- Code: X passed, Y failed
 - Overall: PASS/FAIL
 ```
 
@@ -145,6 +171,12 @@ cat ./<algorithmDir>/<algorithmId>/README.md
 
 # Read state type definitions
 cat ./<stateDir>/<stateId>/<typeFileName>
+
+# Read algorithm source code (to validate import boundaries)
+cat ./<algorithmDir>/<algorithmId>/index.<langExt>
+
+# Read state source code (to validate import boundaries and _publish calls)
+cat ./<stateDir>/<stateId>/index.<langExt>
 
 # Read directory config files
 cat ./<flowDir>/flow.graphig.md
