@@ -102,6 +102,6 @@ Detection rule:
 
 - Every `state` reference in `on`, `call`, `then`, `catch` must match a participant `name`
 - Every algorithm name in `pipe` must exist in the project's `algorithmDirs`
-- Every `call.method`, `then.method`, `catch.method` must exist in the referenced state's README
-- Every `on.event` (with `state`) must exist in the referenced state's README events
+- Every `call.method`, `then.method`, `catch.method` must exist as a method declaration in the referenced state's source file
+- Every `on.event` (with `state`) must correspond to an event published by the referenced state (via `_publish` calls in its source file)
 - Broadcast event names must not conflict with `StateClassName.eventName` patterns

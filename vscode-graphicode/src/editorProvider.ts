@@ -190,9 +190,9 @@ export class FlowEditorProvider implements vscode.CustomReadonlyEditorProvider {
       }
 
       if (stat.isDirectory()) {
-        if (alwaysSkip.has(entry) || excludeAbs.has(fullPath)) continue;
+        if (entry.startsWith(".") || alwaysSkip.has(entry) || excludeAbs.has(fullPath)) continue;
         results.push(...this.searchFiles(workspaceRoot, fullPath, pattern, excludeDirs));
-      } else if (stat.isFile() && /\.(ts|tsx|js|jsx)$/.test(entry)) {
+      } else if (stat.isFile() && !entry.startsWith(".") && /\.(ts|tsx|js|jsx)$/.test(entry)) {
         try {
           const content = fsMod.readFileSync(fullPath, "utf-8");
           const lines = content.split("\n");

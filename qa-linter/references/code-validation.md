@@ -56,7 +56,7 @@ When a state calls `_publish`, the event name (first argument) must follow the `
 [WARN]  S1: State "Auth" calls _publish with dynamic expression — cannot verify event name format statically
 ```
 
-**Rationale:** The `StateClassName.eventName` format ensures events are namespaced and can be reliably cross-referenced in flow YAML `on.event` fields and state README declarations.
+**Rationale:** The `StateClassName.eventName` format ensures events are namespaced and can be reliably cross-referenced in flow YAML `on.event` fields and state source code.
 
 ## Rule S2: State must not import other state instances
 

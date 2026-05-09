@@ -12,12 +12,12 @@ Type validation ensures that data flowing through connections is type-safe. It c
 
 ## Type sources
 
-All type information comes from README files:
+All type information comes from source code:
 
-- **State events**: `# event` section in state README — defines event data types
-- **State methods**: `# method` section in state README — defines method signatures (params and return types)
-- **Algorithm I/O**: `# io` section in algorithm README — defines input/output types
-- **State type definitions**: `<typeFileName>` (e.g., `types.ts`) in each state's directory
+- **State events**: inferred from `_publish` calls in the state source file — the second argument's type is the event data type
+- **State methods**: parsed from method declarations in the state class — parameter names/types and return type
+- **Algorithm I/O**: parsed from the algorithm's default export function signature — input from `PipeContext<T>` generic, output from return type
+- **State type definitions**: `<typeFileName>` (e.g., `types.ts`) in each state's directory (referenced by `graphig.md`)
 
 ## Rule 1: Pipe type chain
 
@@ -44,7 +44,7 @@ If `call.param` is omitted (zero-parameter method), the pipe output is ignored (
 call.method return type → [then.pipe] → then.param type
 ```
 
-1. The method's return type (from state README `# method` signature) must be assignable to the first algorithm in `then.pipe`, or directly to `then.param` if no pipe
+1. The method's return type (from the state source file method declaration) must be assignable to the first algorithm in `then.pipe`, or directly to `then.param` if no pipe
 2. If `then.pipe` exists, the final pipe output must be assignable to `then.param`'s type
 3. If `then` is multicast, each target's `param` type is validated independently
 4. If `then` is broadcast, the method's return type is the broadcast event's data type (no further validation needed)
@@ -80,7 +80,7 @@ When multiple connections fill parameters of the same method:
 - **Exact match**: `string` ↔ `string` — compatible
 - **Structural subtyping**: `{ a: string, b: number }` is assignable to `{ a: string }` — compatible
 - **`any`**: Assignable to and from anything, but generates a **warning** (type safety is lost)
-- **Missing type info**: If a state README doesn't specify a type or uses an unresolvable type reference, generate a **warning** rather than a failure
+- **Missing type info**: If a state source file doesn't specify a type or uses an unresolvable type reference, generate a **warning** rather than a failure
 - **Primitive widening**: `number` is not assignable to `string` — incompatible
 
 ## Severity levels
