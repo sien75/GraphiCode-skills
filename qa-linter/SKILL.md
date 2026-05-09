@@ -20,7 +20,7 @@ Read `graphig.md` in the project root to understand the project configuration (l
 
 # Your Task
 
-When the user asks you to lint (or when the dev-assembler has generated code), perform the following checks in order.
+When the user asks you to lint (or when code has been generated from flow YAML), perform the following checks in order.
 
 ## Phase 1: Schema Validation
 
@@ -70,8 +70,8 @@ Read the flow YAML file(s) and validate against the DSL specification. Check eve
 |-------|------|
 | Algorithm references in `pipe` | Each `algorithmName()` must correspond to an existing algorithm in the project's `algorithmDirs` |
 | State references in `on.state` / `call.state` / `then.state` / `catch.state` | Must correspond to an existing state in the project's `stateDirs` |
-| Method references in `call.method` / `then.method` / `catch.method` | Must correspond to a method declared in the referenced state's README |
-| Event references in `on.event` (with state) | Must correspond to an event declared in the referenced state's README |
+| Method references in `call.method` / `then.method` / `catch.method` | Must correspond to a method declared in the referenced state's source file |
+| Event references in `on.event` (with state) | Must correspond to an event published by the referenced state (via `_publish` calls in its source file) |
 | Broadcast event names | Must not conflict with any `StateClassName.eventName` pattern |
 
 ## Phase 2: Type Validation
@@ -82,19 +82,19 @@ After schema validation passes, validate type compatibility across connections.
 
 For each connection with a `pipe`:
 
-1. Look up the input type: the event's data type (from the state README's `# event` section)
+1. Look up the input type: the event's data type (from the state's `_publish` call in its source file)
 2. For each algorithm in the pipe chain:
-   - Read the algorithm's README `# io` section
+   - Read the algorithm's source file and extract its function signature (input from `PipeContext<T>`, output from return type)
    - Verify the previous output type is compatible with the algorithm's input type
    - Track the output type for the next step
-3. Verify the final pipe output type is compatible with `call.param`'s declared type in the target state's README
+3. Verify the final pipe output type is compatible with `call.param`'s declared type in the target state's method signature
 
 ### 2.2 Then/catch type chain
 
 For each `then` or `catch`:
 
-1. Look up the return type of `call.method` from the target state's README
-2. For `then`: verify the method's return type is compatible with `then.param`'s declared type in the then-target state's README
+1. Look up the return type of `call.method` from the target state's source file method signature
+2. For `then`: verify the method's return type is compatible with `then.param`'s declared type in the then-target state's method signature
 3. For `catch`: verify the error type is compatible with `catch.param`'s declared type
 4. Recursively validate nested `then`/`catch` chains
 
@@ -102,7 +102,7 @@ For each `then` or `catch`:
 
 If multiple connections fill parameters of the same method:
 
-1. Verify all parameter names match the method's declared parameter names in the state README
+1. Verify all parameter names match the method's declared parameter names in the state source file
 2. Verify no duplicate parameter filling (two connections filling the same param of the same method from the same flow)
 
 ## Phase 3: Code Validation
@@ -163,11 +163,14 @@ cat ./graphig.md
 # Read flow YAML
 cat ./<flowDir>/<flowId>/README.yaml
 
-# Read state README (to validate method/event/type references)
-cat ./<stateDir>/<stateId>/README.md
+# Read state source file (to validate method/event/type references)
+cat ./<stateDir>/<stateId>/index.<langExt>
 
-# Read algorithm README (to validate pipe type chains)
-cat ./<algorithmDir>/<algorithmId>/README.md
+# Read state type definitions (if types are in a separate file)
+cat ./<stateDir>/<stateId>/<typeFileName>
+
+# Read algorithm source file (to validate pipe type chains)
+cat ./<algorithmDir>/<algorithmId>/index.<langExt>
 
 # Read state type definitions
 cat ./<stateDir>/<stateId>/<typeFileName>
@@ -187,6 +190,6 @@ cat ./<algorithmDir>/algorithm.graphig.md
 # Notes
 
 - Always read the actual source files. Do not guess or assume types.
-- If a referenced state or algorithm README does not exist, report it as a schema violation (cross-reference failure).
+- If a referenced state source file or algorithm source file does not exist, report it as a schema violation (cross-reference failure).
 - Type compatibility means: the source type is assignable to the target type (same type, or source is a subtype). If type information is incomplete (`any`, missing), report a warning rather than a failure.
 - After completing the lint, simply report the results. Do not auto-fix issues unless the user explicitly asks.

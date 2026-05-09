@@ -12,8 +12,7 @@ Designs architecture and generates connection-layer code.
 
 | Skill | Description |
 |-------|-------------|
-| `dev-architect` | Works interactively with the user to design flows, states, and algorithms. The human architect steers; the agent proposes. |
-| `dev-assembler` | Generates connection code from flow DSL (README.yaml). Translates YAML sequence diagrams into executable `Flow` classes. Language-specific via `<lang>` references. |
+| `dev-architect` | Works interactively with the user to design flows, states, and algorithms. Also generates connection code from flow DSL (README.yaml). Language-specific via `<lang>` references. |
 
 ### QA Group
 
@@ -37,15 +36,14 @@ Sets up project scaffolding and runtime environments.
 - **Flow DSL** (YAML sequence diagram): The connection-layer SSOT. Defines how modules connect — events, pipes, calls, then/catch routing.
 - **State**: Modules with internal state, methods, and events. The only place where side effects live.
 - **Algorithm**: Pure functions that transform data. No side effects.
-- **Assembler**: Generates `Flow` classes from YAML — the bridge between architecture design and running code.
+- **Code generation**: The architect generates `Flow` classes from YAML — the bridge between architecture design and running code.
 - **Linter**: Ensures flow YAML conforms to the DSL schema and module connections are type-safe.
 
 ## Typical Workflow
 
 1. **infra-init** — Scaffold the project
-2. **dev-architect** — Design flows, states, and algorithms interactively
-3. **dev-assembler** — Generate connection code from flow YAML
-4. **qa-linter** — Validate flow DSL and type compatibility
+2. **dev-architect** — Design flows, states, and algorithms interactively; generate connection code from flow YAML
+3. **qa-linter** — Validate flow DSL and type compatibility
 5. **qa-tester** — Write and run tests for modules and flows
 
 ## Version History
