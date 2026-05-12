@@ -50,7 +50,7 @@ Sets up project scaffolding and runtime environments.
 
 | Date | Version | Changes |
 |------|---------|---------|
-| May 12, 2026 | 0.3.0 | Added VS Code GraphiCode extension with event navigation and QuickPick references; merged dev-assembler into dev-architect for unified architecture design; linter gained Phase 3 validation for algo/state boundaries; added launcher import/enable reminder in dev-architect |
-| May 6, 2026 | 0.2.0 | Merged language/runtime-specific directories, replaced README.md-based references with code examples, updated VS Code extension click navigation |
-| May 1, 2026 | 0.1.0 | Restructured into dev/qa/infra groups, added qa-linter, renamed skills |
+| May 12, 2026 | 0.0.1-alpha.4 | VS Code extension, merge dev-assembler into dev-architect, linter Phase 3, launcher reminder |
+| May 6, 2026 | 0.0.1-alpha.3 | Multi-language asset dirs, code-example references, ext click nav |
+| May 1, 2026 | 0.0.1-alpha.2 | Dev/qa/infra groups, qa-linter, skill renames |
 | March 10, 2026 | 0.0.1-alpha.1 | Initial release |
