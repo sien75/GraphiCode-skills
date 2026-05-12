@@ -1,6 +1,12 @@
-# GraphiCode Skills
+# Flow-Driven Architecture Skills
 
-This repository contains AI skills for **GraphiCode** — a programming tool where the **flow DSL is the connection-layer SSOT** (Single Source of Truth). GraphiCode lets you design architecture visually and generates connection code from the flow DSL, ensuring code never drifts from the architecture.
+This repository contains Agent skills for designing software architecture where the **flow DSL is the connection-layer SSOT** (Single Source of Truth). The flow DSL lets you define how modules connect — via events, pipes, and calls — and generates the connection code, ensuring the implementation never drifts from the architecture.
+
+## Why Flow-Driven?
+
+Code is becoming a compilation target. These skills move control from syntax to intent: **humans own the flow** (how modules connect, what data flows where), **AI owns the implementation** (state logic, algorithms, wiring). When the flow changes, the code regenerates; when you review, you review architecture, not call chains.
+
+This is not "generate diagrams from existing code" — diagrams derived from code always drift. Here the flow **drives** the code, making the architecture the single source of truth. The result: systems understood in hours, changes reviewed at the intent layer, and complex execution logic tamed without ever tracing a stack frame.
 
 ## Skill Organization
 
@@ -29,7 +35,7 @@ Sets up project scaffolding and runtime environments.
 
 | Skill | Description |
 |-------|-------------|
-| `infra-init` | Initializes a GraphiCode-managed project. Language/runtime-specific via `config-<runtimeEnv>.md` and `assets/<language>-<runtimeEnv>/`. |
+| `infra-init` | Initializes a project with flow DSL support. Language/runtime-specific via `config-<runtimeEnv>.md` and `assets/<language>-<runtimeEnv>/`. |
 
 ## Core Concepts
 
@@ -44,7 +50,7 @@ Sets up project scaffolding and runtime environments.
 1. **infra-init** — Scaffold the project
 2. **dev-architect** — Design flows, states, and algorithms interactively; generate connection code from flow YAML
 3. **qa-linter** — Validate flow DSL and type compatibility
-5. **qa-tester** — Write and run tests for modules and flows
+4. **qa-tester** — Write and run tests for modules and flows
 
 ## Version History
 
