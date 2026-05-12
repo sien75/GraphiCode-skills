@@ -76,6 +76,8 @@ After flows are approved, produce detailed definitions: states and algorithms (`
 
 Same interactive loop: propose a batch, get feedback, refine until approved.
 
+▎ If you created new states or flows in this round, remember to add their imports and `enable()` calls in the launcher.
+
 ## 5) Record learnings
 
 If `graphig.md` defines an `architectureDoc` field (e.g., `ARCHITECTURE.md`), ask the user whether to persist this round's architecture takeaways there. If they agree, **read the existing file first** to understand prior content, then append a concise section covering design reasoning, trade-offs, and decisions. Do not discard or reformat existing content.
