@@ -2,17 +2,31 @@
 
 This repository contains Agent skills for designing software architecture where the **flow DSL is the connection-layer SSOT** (Single Source of Truth). The flow DSL lets you define how modules connect — via events, pipes, and calls — and generates the connection code, ensuring the implementation never drifts from the architecture.
 
+---
+
 ## Why Flow-Driven?
 
 Code is becoming a compilation target. These skills move control from syntax to intent: **humans own the flow** (how modules connect, what data flows where), **AI owns the implementation** (state logic, algorithms, wiring). When the flow changes, the code regenerates; when you review, you review architecture, not call chains.
 
 This is not "generate diagrams from existing code" — diagrams derived from code always drift. Here the flow **drives** the code, making the architecture the single source of truth. The result: systems understood in hours, changes reviewed at the intent layer, and complex execution logic tamed without ever tracing a stack frame.
 
+## Who Is This For?
+
+| ✅ A good fit | ❌ Not a good fit |
+|---------------|-------------------|
+| Complex async orchestration (state machines, multi-step workflows) | One-off scripts or prototypes |
+| Systems needing architectural visibility across teams | Scenarios so trivial that you never need to read the code |
+| Long-lived codebases where understanding call chains is painful | Projects where "just ask Claude Code" is always enough |
+
+> If your entire system fits in a single file and you never review it, you probably don't need this.
+
+---
+
 ## Skill Organization
 
 Skills are organized into three groups, mirroring a team structure:
 
-### Dev Group
+### 🏗️ Dev Group
 
 Designs architecture and generates connection-layer code.
 
@@ -20,7 +34,7 @@ Designs architecture and generates connection-layer code.
 |-------|-------------|
 | `dev-architect` | Works interactively with the user to design flows, states, and algorithms. Also generates connection code from flow DSL (README.yaml). Language-specific via `<lang>` references. |
 
-### QA Group
+### 🔍 QA Group
 
 Validates that outputs conform to the DSL specification and behave correctly.
 
@@ -29,7 +43,7 @@ Validates that outputs conform to the DSL specification and behave correctly.
 | `qa-linter` | Validates flow DSL schema compliance and type compatibility across module connections. The "compiler" for the flow layer. |
 | `qa-tester` | Writes and executes tests for modules. Language/runtime-specific via `<category>-<runtimeEnv>.md` references. |
 
-### Infra Group
+### 📦 Infra Group
 
 Sets up project scaffolding and runtime environments.
 
@@ -37,20 +51,31 @@ Sets up project scaffolding and runtime environments.
 |-------|-------------|
 | `infra-init` | Initializes a project with flow DSL support. Language/runtime-specific via `config-<runtimeEnv>.md` and `assets/<language>-<runtimeEnv>/`. |
 
+---
+
 ## Core Concepts
 
-- **Flow DSL** (YAML sequence diagram): The connection-layer SSOT. Defines how modules connect — events, pipes, calls, then/catch routing.
-- **State**: Modules with internal state, methods, and events. The only place where side effects live.
-- **Algorithm**: Pure functions that transform data. No side effects.
-- **Code generation**: The architect generates `Flow` classes from YAML — the bridge between architecture design and running code.
-- **Linter**: Ensures flow YAML conforms to the DSL schema and module connections are type-safe.
+- 🔄 **Flow DSL** (YAML sequence diagram): The connection-layer SSOT. Defines how modules connect — events, pipes, calls, then/catch routing.
+- 💾 **State**: Modules with internal state, methods, and events. The only place where side effects live.
+- ⚙️ **Algorithm**: Pure functions that transform data. No side effects.
+- ✨ **Code generation**: The architect generates `Flow` classes from YAML — the bridge between architecture design and running code.
+- ✅ **Linter**: Ensures flow YAML conforms to the DSL schema and module connections are type-safe.
+
+---
 
 ## Typical Workflow
+
+```
+infra-init  →  dev-architect  →  qa-linter  →  qa-tester
+scaffold        design            validate      test
+```
 
 1. **infra-init** — Scaffold the project
 2. **dev-architect** — Design flows, states, and algorithms interactively; generate connection code from flow YAML
 3. **qa-linter** — Validate flow DSL and type compatibility
 4. **qa-tester** — Write and run tests for modules and flows
+
+---
 
 ## Version History
 
