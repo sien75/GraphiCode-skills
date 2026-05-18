@@ -116,7 +116,7 @@ About code validation rules, see: `./references/code-validation.md`.
 | Check | Rule |
 |-------|------|
 | A1: algo imports state | Algorithm files must not import from any directory listed in `stateDirs` |
-| A2: algo imports other algo | Algorithm files must not import from other algorithms in `algorithmDirs` (each algo is an isolated pure function) |
+| A2: algo imports other algo | Algorithm Isolation Rule: algorithm files must not import (value or type) from sibling algorithms in `algorithmDirs`. Composition must happen via flow `pipe` chains only |
 
 ### 3.2 State boundary checks
 
@@ -125,6 +125,12 @@ About code validation rules, see: `./references/code-validation.md`.
 | S1: `_publish` event name format | Every `_publish` call in a state file must use a string matching `StateClassName.eventName`, where `StateClassName` equals the current state's class name |
 | S2: state imports other state | State files must not import other state instances and call their methods (cross-state calls must go through the flow layer) |
 | S3: state imports algo | State files must not import from any directory listed in `algorithmDirs` (algorithms are invoked only through flow pipes) |
+
+### 3.3 React component checks
+
+| Check | Rule |
+|-------|------|
+| R1: restricted React hooks | React component files may only use `useState`, `useEffect`, and `useRef`. All other React hooks — especially `useCallback` and `useMemo` — are prohibited |
 
 ## Reporting
 

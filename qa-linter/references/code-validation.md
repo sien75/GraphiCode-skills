@@ -24,9 +24,14 @@ Algorithms are pure data transformers with no side effects. They must not import
 
 **Rationale:** State modules contain side effects and runtime state. Importing them breaks the purity guarantee of algorithms and creates hidden coupling outside the flow layer.
 
-## Rule A2: Algorithm must not import other algorithms
+## Rule A2: Algorithm Isolation Rule（算法隔离原则）
 
-Each algorithm is an isolated pure function. Composition happens exclusively through flow `pipe` chains — algorithms must not import or call each other directly.
+Each algorithm is an isolated pure function. It must not import — neither values nor types — from sibling algorithms in the same `algorithmDirs`. If algorithm A needs the result of algorithm B, the flow layer arranges the `pipe` order; A never calls B directly.
+
+**Why this matters:**
+- Prevents hidden dependency chains that bypass the flow DSL's explicit orchestration.
+- Keeps every algorithm's inputs and outputs transparent for debugging.
+- Preserves composability: an algorithm should receive raw data, never another algorithm's intermediate product.
 
 **How to check:**
 1. Read `graphig.md` to get `algorithmDirs` paths.
@@ -38,7 +43,98 @@ Each algorithm is an isolated pure function. Composition happens exclusively thr
 [ERROR] A2: Algorithm "formatToken" imports algorithm "extractToken" — algorithms must not import each other; use flow pipe chains instead
 ```
 
-**Rationale:** Algorithm composition belongs in the flow layer (pipe chains). Direct imports create invisible dependencies that bypass the flow DSL and break the connection-layer SSOT.
+### ESLint configuration
+
+Use `import/no-restricted-paths` (requires `eslint-plugin-import`):
+
+```js
+module.exports = {
+  overrides: [
+    {
+      files: ['src/algorithms/**/*.ts'],
+      rules: {
+        'import/no-restricted-paths': [
+          'error',
+          {
+            zones: [
+              {
+                target: './src/algorithms',
+                from: './src/algorithms',
+                except: [],
+                message:
+                  "Algorithm Isolation Rule: algorithms must not import other algorithms. " +
+                  "If A needs B's result, let the flow call B first and pipe its output to A.",
+              },
+            ],
+          },
+        ],
+      },
+    },
+  ],
+};
+```
+
+Without `eslint-plugin-import`, use native `no-restricted-imports`:
+
+```js
+overrides: [
+  {
+    files: ['src/algorithms/**/*.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@/algorithms/**'],
+              message: 'Algorithm Isolation Rule: algorithms must not import other algorithms.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+];
+```
+
+### Correct vs. incorrect
+
+Incorrect — `extractA` imports `buildB` internally:
+
+```ts
+// src/algorithms/extractA/index.ts
+import buildB from '@/algorithms/buildB';  // ❌ violation
+
+export default function extractA(data) {
+  const intermediate = buildB(data);       // hidden dependency
+  return extractFrom(intermediate);
+}
+```
+
+Correct — flow orchestrates the chain:
+
+```yaml
+# flow README.yaml
+connections:
+  - on:
+      state: SomePage
+      event: pageInit
+    call:
+      state: SomeState
+      method: getRawData
+    then:
+      state: SomePage
+      method: setResult
+      pipe:
+        - buildB()    # flow calls B first
+        - extractA()  # then A, receiving B's output
+```
+
+Or, if B's logic is small, inline it into A so A remains self-contained.
+
+### One-line summary
+
+Algorithms are pure functions: they may be imported by states/flows/pages, but an algorithm must never import another algorithm.
 
 ## Rule S1: State `_publish` event name format
 
@@ -89,6 +185,42 @@ Algorithms are invoked exclusively through flow `pipe` chains. States must not i
 ```
 
 **Rationale:** Algorithm invocation belongs in the flow layer. Direct imports bypass the type validation of pipe chains and break the connection-layer SSOT.
+
+## Rule R1: React hook whitelist
+
+React component files may only use `useState`, `useEffect`, and `useRef`. All other React hooks — especially `useCallback` and `useMemo` — are prohibited.
+
+**How to check:**
+1. Scan every `.tsx` and `.jsx` file in the project.
+2. Identify React hook calls by the pattern `use[A-Z]\w+` invoked as a function.
+3. If any hook other than `useState`, `useEffect`, or `useRef` is found, report an error.
+
+**Allowed hooks (whitelist):**
+- `useState`
+- `useEffect`
+- `useRef`
+
+**Prohibited hooks (non-exhaustive):**
+- `useCallback`
+- `useMemo`
+- `useReducer`
+- `useContext`
+- `useLayoutEffect`
+- `useImperativeHandle`
+- `useDeferredValue`
+- `useTransition`
+- `useId`
+- `useSyncExternalStore`
+- `useInsertionEffect`
+- Custom hooks (e.g., `useMyHook`)
+
+**Error format:**
+```
+[ERROR] R1: Component "UserList" calls useCallback — only useState, useEffect, and useRef are allowed in React components
+[ERROR] R1: Component "UserList" calls useMemo — only useState, useEffect, and useRef are allowed in React components
+```
+
+**Rationale:** In the GraphiCode flow-driven architecture, component-level memoization (`useCallback` / `useMemo`) is an anti-pattern. Performance optimization should be handled at the flow/state layer, not by sprinkling memoization hooks in UI components. This rule keeps React components simple and deterministic.
 
 ## Severity levels
 
